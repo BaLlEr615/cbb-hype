@@ -1,0 +1,33 @@
+{
+  "as_of": "2026-11-23",
+  "params": {
+    "rating_weight": 0.9542368705429747,
+    "results_weight": 0.19636837763740944,
+    "sos_weight": -0.08255383593950356,
+    "hca": 4.892420434703597,
+    "total_bias": 1.0343657838168354,
+    "market_a": -0.014342580604383395,
+    "market_b": 0.20760846468505928,
+    "total_a": 1.178110292012045,
+    "total_c": 0.22558410058163264,
+    "spread_xbar": -1.6421432115344537e-15,
+    "total_xbar": 6.252776074688882e-15,
+    "spread_alpha": 0.7672552342277728,
+    "spread_beta": 1.086403283389944,
+    "total_alpha": 72.88119063804467,
+    "total_beta": 0.5,
+    "sd_margin": 13.572084745201504,
+    "sd_vs_spread": 12.353897601805633,
+    "sd_vs_total": 16.51973637199251
+  },
+  "stats": {
+    "graded_games": 227,
+    "games_with_spread": 225,
+    "model_mae_vs_result": 11.410738843914167,
+    "market_mae_vs_result": 10.206666666666667,
+    "games_with_total": 225,
+    "model_total_mae": 15.476385683102928,
+    "market_total_mae": 12.488888888888889,
+    "learned_share": 0.3620414673046252
+  }
+}
