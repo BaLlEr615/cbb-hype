@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CBB Hype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: navy scoreboard bar + tab strip on top; each view is a stack of panels on an auto-fit grid that drops to one column near 400px. */
+:root {
+  --bg: #f2f3f5;
+  --panel: #ffffff;
+  --ink: #141a24;
+  --muted: #5a6372;
+  --line: #dde1e7;
+  --bar: #1f3864;
+  --bar-ink: #ffffff;
+  --accent: #1f4fa0;
+  --accent-soft: #e5ecf8;
+  --pos: #2a78d6;
+  --neg: #e34948;
+  --dot: #c3c8d0;
+  --good: #0b6e0b; --good-bg: #dcf1dc;
+  --bad: #ad2222;  --bad-bg: #fbe0e0;
+  --even: #59606b; --even-bg: #eceef1;
+  --warn: #7a4a00; --warn-bg: #fde9c4;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --panel: #1a1d22; --ink: #eceef1; --muted: #a2a9b4; --line: #2d3239;
+    --bar: #0c1730; --bar-ink: #eef2fa; --accent: #8db0ec; --accent-soft: #1d2a42;
+    --pos: #3987e5; --neg: #e66767; --dot: #474d57;
+    --good: #6fd56f; --good-bg: #173019; --bad: #ff8e8e; --bad-bg: #3b1d1d; --even: #b0b6bf; --even-bg: #2a2e34;
+    --warn: #ffc56b; --warn-bg: #3a2a10;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --panel: #1a1d22; --ink: #eceef1; --muted: #a2a9b4; --line: #2d3239;
+  --bar: #0c1730; --bar-ink: #eef2fa; --accent: #8db0ec; --accent-soft: #1d2a42;
+  --pos: #3987e5; --neg: #e66767; --dot: #474d57;
+  --good: #6fd56f; --good-bg: #173019; --bad: #ff8e8e; --bad-bg: #3b1d1d; --even: #b0b6bf; --even-bg: #2a2e34;
+  --warn: #ffc56b; --warn-bg: #3a2a10;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--body); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Top bar */
+.top { background: var(--bar); color: var(--bar-ink); padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.brand { font: 700 26px/1 var(--display); letter-spacing: .02em; text-transform: uppercase; margin: 0; }
+.brand span { opacity: .65; font-weight: 500; }
+.fileinfo { font-size: 12.5px; opacity: .85; flex: 1 1 260px; }
+.fileinfo b { font-weight: 600; }
+.runinfo { margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.runinfo a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.stale { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: #fab219; color: #241a00; font-weight: 600; font-size: 11.5px; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn-bar { background: transparent; color: var(--bar-ink); border-color: rgba(255,255,255,.4); }
+.btn-bar:hover { border-color: var(--bar-ink); }
+
+.tabs { display: flex; gap: 2px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--line); overflow-x: auto; position: sticky; top: 0; z-index: 5; }
+.tabs a { padding: 11px 12px 9px; text-decoration: none; color: var(--muted); font: 600 15px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; border-bottom: 3px solid transparent; white-space: nowrap; }
+.tabs a:hover { color: var(--ink); }
+.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+main { padding: 16px 20px 40px; max-width: 1280px; margin: 0 auto; display: grid; gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.panel h2 { font: 700 20px/1.1 var(--display); letter-spacing: .02em; text-transform: uppercase; margin: 0 0 4px; text-wrap: balance; }
+.panel h3 { font: 600 16px/1.2 var(--display); letter-spacing: .03em; text-transform: uppercase; margin: 0 0 8px; color: var(--muted); }
+.sub { color: var(--muted); font-size: 12.5px; margin: 0 0 12px; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-bottom: 12px; }
+.controls label { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+input[type="date"], input[type="search"], input[type="number"], select { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 6px 8px; }
+input[type="search"] { min-width: 220px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: var(--panel); padding: 6px 10px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+/* Drop zone / empty state */
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 40px 24px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+.drop h2 { font-size: 30px; }
+.drop p { max-width: 60ch; margin: 0; color: var(--muted); }
+.drop ul { text-align: left; color: var(--muted); margin: 4px 0 0; padding-left: 20px; max-width: 60ch; }
+.overlay { position: fixed; inset: 0; background: rgba(15,30,60,.55); color: #fff; display: none; place-items: center; z-index: 50; font: 700 34px var(--display); text-transform: uppercase; letter-spacing: .03em; }
+.overlay.on { display: grid; }
+.error { color: var(--bad); background: var(--bad-bg); padding: 10px 12px; border-radius: 8px; }
+
+/* Game cards */
+.games { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.game { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; cursor: pointer; background: var(--panel); }
+.game:hover { border-color: var(--accent); }
+.g-top { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.g-top .time { font-weight: 600; color: var(--ink); margin-right: auto; }
+.tag { border: 1px solid var(--line); border-radius: 99px; padding: 0 7px; font-size: 11.5px; }
+.g-team { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; }
+.rk { font-size: 11.5px; color: var(--muted); text-align: right; }
+.tname { font-weight: 500; }
+.g-team .cf { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 4px; }
+.score { font: 700 22px/1 var(--display); min-width: 2ch; text-align: right; }
+.g-team.win .tname, .g-team.win .score { font-weight: 700; }
+.g-team.loss .score { color: var(--muted); font-weight: 500; }
+.g-lines { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; margin: 0; }
+.g-lines div { min-width: 0; }
+.g-lines dt { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.g-lines dd { margin: 0; font-weight: 500; font-size: 13px; overflow-wrap: anywhere; }
+.g-lines dd small { color: var(--muted); font-weight: 400; }
+.g-res { display: flex; gap: 6px; flex-wrap: wrap; }
+.linkish { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.linkish:hover { color: var(--accent); text-decoration: underline; }
+
+.pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill.good { background: var(--good-bg); color: var(--good); }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.pill.even { background: var(--even-bg); color: var(--even); }
+.pill.warn { background: var(--warn-bg); color: var(--warn); }
+
+/* Tables */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 70vh; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 13px; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--panel); z-index: 1; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+th button { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+th button:hover { color: var(--ink); }
+th[aria-sort] button { color: var(--ink); }
+td.r, th.r { text-align: right; }
+tbody tr:hover { background: var(--accent-soft); }
+tbody tr.click { cursor: pointer; }
+.muted { color: var(--muted); }
+
+/* Team profile */
+.t-head { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; margin-bottom: 14px; }
+.t-head h2 { font-size: 34px; margin: 0; }
+.t-head .meta { color: var(--muted); }
+.tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); margin-bottom: 4px; }
+.tile { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.tile .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tile .v { font: 700 28px/1.1 var(--display); }
+.tile .s { font-size: 12px; color: var(--muted); }
+.bars { display: grid; gap: 9px; }
+.pbar { display: grid; grid-template-columns: 120px 1fr 92px; gap: 10px; align-items: center; font-size: 13px; }
+.pbar .track { height: 10px; background: var(--even-bg); border-radius: 99px; position: relative; overflow: hidden; }
+.pbar .fill { position: absolute; inset: 0 auto 0 0; background: var(--pos); border-radius: 99px; }
+.pbar .val { text-align: right; }
+.pbar .val small { color: var(--muted); }
+.splits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kv { display: grid; gap: 6px; }
+.kv div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
+.kv span:first-child { color: var(--muted); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+.legend i { display: inline-block; width: 12px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.chart { width: 100%; }
+.chart svg { display: block; overflow: visible; }
+.chart text { fill: var(--muted); font: 11px var(--body); }
+.chart .grid line { stroke: var(--line); }
+.chart .zero { stroke: var(--muted); stroke-width: 1; }
+
+/* Matchup */
+.cmp { display: grid; grid-template-columns: 1fr minmax(90px, auto) 1fr; gap: 0; font-variant-numeric: tabular-nums; }
+.cmp > div { padding: 7px 8px; border-bottom: 1px solid var(--line); }
+.cmp .lab { text-align: center; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.cmp .a { text-align: right; }
+.cmp .better { font-weight: 700; color: var(--accent); }
+.cmp .hd { font: 700 22px/1.1 var(--display); text-transform: uppercase; border-bottom: 2px solid var(--line); }
+.callout { background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; }
+.callout b { font: 700 22px/1.1 var(--display); }
+
+.tip { position: fixed; z-index: 60; display: none; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0,0,0,.18); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; max-width: 280px; }
+.tip .tip-h { font-weight: 600; margin-bottom: 2px; }
+
+/* Model */
+.pill.edge { background: var(--accent-soft); color: var(--accent); }
+.ebar { display: inline-block; width: 46px; height: 6px; border-radius: 99px; background: var(--even-bg); margin-left: 6px; vertical-align: 1px; position: relative; overflow: hidden; }
+.ebar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 99px; }
+.wp { display: flex; height: 12px; border-radius: 99px; overflow: hidden; gap: 2px; margin: 6px 0 2px; }
+.wp span { display: block; height: 100%; }
+.wp-l { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.score-board { display: grid; gap: 2px; }
+.sb-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font: 600 26px/1.15 var(--display); text-transform: uppercase; color: var(--muted); }
+.sb-row.fav { color: var(--ink); font-weight: 700; }
+.sb-name { min-width: 0; overflow-wrap: anywhere; }
+.edges { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 12px; }
+.edges .tile .v { font-size: 22px; }
+details.settings { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; }
+details.settings summary { cursor: pointer; font-weight: 600; }
+details.settings .controls { margin: 10px 0 0; }
+details.settings input { width: 72px; }
+.fm { display: grid; grid-template-columns: 1fr auto 1fr; gap: 4px 10px; align-items: center; font-size: 13px; }
+.fm .lab { text-align: center; color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+.fm .a { text-align: right; }
+.fm .hd { font: 700 16px/1.2 var(--display); text-transform: uppercase; padding-top: 8px; color: var(--ink); grid-column: 1 / -1; text-align: left; border-bottom: 1px solid var(--line); }
+.cmp .note, .fm .note { color: var(--muted); font-size: 11.5px; }
+.better-ats { font-weight: 700; color: var(--good); }
+
+/* Picks */
+.picks { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.pick { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; cursor: pointer; background: var(--panel); }
+.pick:hover { border-color: var(--accent); }
+.pick.strong { border-left-color: var(--good); }
+.pick.flagged { border-left-color: var(--warn); }
+.pick .flag { background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 6px 8px; font-size: 12.5px; }
+.pick .note { color: var(--muted); font-size: 12px; font-style: italic; }
+.rosters { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.pick .p-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.pick .p-top .pill { margin-right: auto; }
+.pick .p-main { font: 700 26px/1.1 var(--display); text-transform: uppercase; }
+.pick .p-conf { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.pick ul { margin: 2px 0 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; display: grid; gap: 2px; }
+.trust { height: 8px; background: var(--even-bg); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+.trust i { display: block; height: 100%; background: var(--accent); }
+
+@media (max-width: 560px) {
+  .top { padding: 10px 16px; }
+  main { padding: 12px 16px 32px; }
+  .pbar { grid-template-columns: 92px 1fr 78px; }
+  .splits { grid-template-columns: 1fr; }
+  input[type="search"] { min-width: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 class="brand">CBB <span>Hype</span></h1>
+  <div class="fileinfo" id="fileinfo">No workbook loaded yet.</div>
+  <button class="btn btn-bar" id="loadBtn" type="button">Load workbook</button>
+  <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xls" multiple hidden>
+</header>
+<nav class="tabs" id="tabs" aria-label="Views">
+  <a href="#picks" data-view="picks">Picks</a>
+  <a href="#games" data-view="games">Games</a>
+  <a href="#model" data-view="model">Model board</a>
+  <a href="#team" data-view="team">Team lookup</a>
+  <a href="#matchup" data-view="matchup">Matchup</a>
+  <a href="#rankings" data-view="rankings">Rankings</a>
+  <a href="#conferences" data-view="conferences">Conferences</a>
+  <a href="#ats" data-view="ats">ATS &amp; totals</a>
+</nav>
+<main id="main"></main>
+<div class="overlay" id="overlay">Drop the workbook to load it</div>
+
+<!--WORKBOOK-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+"use strict";
+/* ---------------------------------------------------------------- helpers */
+const $ = s => document.querySelector(s);
+function el(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  if (props) for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k));
+  return e;
+}
+function sv(tag, attrs, ...kids) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null) continue;
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "text") e.textContent = v;
+    else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat(Infinity)) if (k) e.append(k);
+  return e;
+}
+const num = v => { if (v == null || v === "") return null; const n = typeof v === "number" ? v : Number(String(v).replace(/[^0-9.+-]/g, "")); return Number.isFinite(n) ? n : null; };
+const str = v => (v == null || v === "") ? null : String(v).trim();
+const DASH = "—";
+const f1 = v => v == null ? DASH : v.toFixed(1);
+const fs1 = v => v == null ? DASH : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1);
+const fpct0 = v => v == null ? DASH : Math.round(v * 100) + "%";
+const fwp = v => v == null ? DASH : v.toFixed(3).replace(/^0/, "");
+const fspread = v => v == null ? DASH : v === 0 ? "PK" : (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1);
+const avg = (...xs) => { const v = xs.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+const plural = (n, w) => `${n.toLocaleString()} ${w}${n === 1 ? "" : "s"}`;
+
+function todayET() {
+  const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return p; // YYYY-MM-DD
+}
+function addDays(key, n) { const d = new Date(key + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function dateLabel(key, long) {
+  const d = new Date(key + "T12:00:00Z");
+  return d.toLocaleDateString("en-US", { timeZone: "UTC", weekday: long ? "long" : "short", month: long ? "long" : "short", day: "numeric", year: long ? "numeric" : undefined });
+}
+function dateKey(v) {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return new Date(Math.round((Math.floor(v) - 25569) * 864e5)).toISOString().slice(0, 10);
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  const m = String(v).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[0];
+  const d = new Date(String(v));
+  return isNaN(d) ? null : d.toISOString().slice(0, 10);
+}
+function minutesOf(v) {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return Math.round((v % 1) * 1440);
+  const m = String(v).match(/(\d{1,2}):(\d{2})\s*([AP]M)?/i);
+  if (!m) return null;
+  let h = +m[1] % 12; if (m[3] && /p/i.test(m[3])) h += 12; if (!m[3]) h = +m[1];
+  return h * 60 + +m[2];
+}
+function fmtTime(min) {
+  if (min == null) return "TBD";
+  const h = Math.floor(min / 60), m = min % 60;
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+}
+
+/* tooltip */
+const tip = el("div", { class: "tip", role: "tooltip" });
+document.body.append(tip);
+function showTip(e, head, lines) {
+  tip.replaceChildren(el("div", { class: "tip-h", text: head }), ...lines.filter(Boolean).map(l => el("div", { text: l })));
+  tip.style.display = "block"; moveTip(e);
+}
+function moveTip(e) {
+  const pad = 14, r = tip.getBoundingClientRect();
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - pad;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+
+/* ---------------------------------------------------------------- state */
+const S = {
+  loaded: false, file: null, teams: [], teamBy: new Map(), rows: [], byTeam: new Map(), games: new Map(), confs: [],
+  date: null, dateConf: "", team: null, mA: null, mB: null, mSite: "neutral",
+  rank: { sort: "adjNet", dir: -1, conf: "", q: "" },
+  conf: null, roster: new Map(), rosterMeta: null,
+  ats: { site: "Overall", conf: "", min: 3, sort: "coverPct", dir: -1 },
+};
+
+/* ---------------------------------------------------------------- parsing */
+function sheetRows(wb, name, mustHave) {
+  const key = wb.SheetNames.find(n => n.toLowerCase() === name.toLowerCase());
+  if (!key) return null;
+  const a = XLSX.utils.sheet_to_json(wb.Sheets[key], { header: 1, raw: true, defval: null, blankrows: false });
+  const hi = a.findIndex((r, i) => i < 10 && r && r.some(c => str(c) === mustHave));
+  if (hi < 0) return null;
+  const hdr = a[hi].map(str);
+  const out = [];
+  for (let i = hi + 1; i < a.length; i++) {
+    const r = a[i]; if (!r) continue;
+    const o = {}; let any = false;
+    hdr.forEach((h, j) => { if (h) { o[h] = r[j] ?? null; if (r[j] != null && r[j] !== "") any = true; } });
+    if (any) out.push(o);
+  }
+  return out;
+}
+
+const TEAM_COLS = {
+  name: ["Team", str], conf: ["Conference", str], rec: ["Record", str], w: ["W", num], l: ["L", num], winPct: ["Win %", num],
+  confRec: ["Conf Record", str], confW: ["Conf W", num], confL: ["Conf L", num], confPct: ["Conf Win %", num],
+  homeRec: ["Home Rec", str], homePM: ["Home +/-", num], awayRec: ["Away Rec", str], awayPM: ["Away +/-", num],
+  neuRec: ["Neutral Rec", str], neuPM: ["Neutral +/-", num], best: ["Best Win", str], worst: ["Worst Loss", str],
+  adjNet: ["Adj Net", num], netRk: ["Net Rk", num], srs: ["SRS", num], adjO: ["Adj O", num], oRk: ["O Rk", num],
+  adjD: ["Adj D", num], dRk: ["D Rk", num], pace: ["Pace", num], efg: ["eFG%", num], oefg: ["Opp eFG%", num],
+  to: ["TO%", num], oto: ["Opp TO%", num], orb: ["ORB%", num], oorb: ["Opp ORB%", num], games: ["Games", num], mascot: ["Mascot", str],
+};
+const GAME_COLS = {
+  date: ["Date", dateKey], min: ["Time (ET)", minutesOf], team: ["Team", str], conf: ["Conference", str], site: ["Site", str],
+  opp: ["Opponent", str], oppConf: ["Opp Conference", str], oppRating: ["Opp Rating", num], result: ["Result", str],
+  pts: ["Pts", num], oppPts: ["Opp Pts", num], margin: ["Margin", num], score: ["Score", str], spread: ["Spread", num],
+  openSpread: ["Open Spread", num], ats: ["ATS", str], ou: ["O/U", num], openOu: ["Open O/U", num], total: ["Game Total", num],
+  ouRes: ["Over/Under", str], sd: ["Spread Difference", num], od: ["O/U Difference", num], ml: ["Moneyline", num], oml: ["Opp Moneyline", num],
+  confGame: ["Conf Game", str], status: ["Status", str], type: ["Game Type", str], venue: ["Venue", str], city: ["City", str],
+  state: ["State", str], id: ["GameID", v => v == null ? null : String(v)],
+};
+const pick = (row, cols) => { const o = {}; for (const [k, [h, fn]] of Object.entries(cols)) o[k] = fn(row[h]); return o; };
+
+function gameFromRow(r) {
+  const away = r.site === "Away";
+  const flip = v => v == null ? null : (away ? -v : v);
+  return {
+    id: r.id, date: r.date, min: r.min,
+    home: away ? r.opp : r.team, away: away ? r.team : r.opp,
+    homeConf: away ? r.oppConf : r.conf, awayConf: away ? r.conf : r.oppConf,
+    neutral: r.site === "Neutral", fromHome: r.site === "Home",
+    spread: flip(r.spread), openSpread: flip(r.openSpread), ou: r.ou, openOu: r.openOu,
+    homeMl: away ? r.oml : r.ml, awayMl: away ? r.ml : r.oml,
+    final: r.result != null, homePts: away ? r.oppPts : r.pts, awayPts: away ? r.pts : r.oppPts,
+    status: r.status, type: r.type, venue: r.venue, city: r.city, state: r.state, confGame: r.confGame === "Yes",
+  };
+}
+
+function loadWorkbook(buf, meta) {
+  const wb = XLSX.read(buf, { type: "array" });
+  if (!wb.SheetNames.some(n => n.toLowerCase() === "all teams") && wb.SheetNames.some(n => n.toLowerCase() === "all players")) {
+    const players = rosterFromWorkbook(wb);
+    if (!players) throw new Error("That rosters file has no player list on its All Players tab.");
+    setRoster(players, meta);
+    store.put({ buf, meta }, "roster");
+    return "roster";
+  }
+  const teamRows = sheetRows(wb, "All Teams", "Team");
+  if (!teamRows) throw new Error('This file has no "All Teams" tab. Load college_basketball_by_conference.xlsx, the workbook your records script makes.');
+  const gameRows = sheetRows(wb, "Games", "Team") || [];
+
+  const teams = teamRows.map(r => pick(r, TEAM_COLS)).filter(t => t.name);
+  const teamBy = new Map(teams.map(t => [t.name, t]));
+  const rows = gameRows.map(r => pick(r, GAME_COLS)).filter(r => r.team);
+  const byTeam = new Map();
+  const games = new Map();
+  for (const r of rows) {
+    if (!byTeam.has(r.team)) byTeam.set(r.team, []);
+    byTeam.get(r.team).push(r);
+    const id = r.id || [r.date, ...[r.team, r.opp].sort()].join("|");
+    const g = gameFromRow(r);
+    const prev = games.get(id);
+    if (!prev || (!prev.fromHome && g.fromHome)) games.set(id, { ...g, id });
+  }
+  for (const list of byTeam.values()) list.sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.min ?? 0) - (b.min ?? 0));
+  S.teams = teams; S.teamBy = teamBy; S.rows = rows; S.byTeam = byTeam; S.games = games;
+  S.confs = [...new Set(teams.map(t => t.conf).filter(Boolean))].sort();
+  for (const t of teams) t.atsAll = atsSummary(byTeam.get(t.name) || []);
+  buildPercentiles();
+  S.lgO = avg(...teams.map(t => t.adjO)) ?? 105;
+  S.lgD = avg(...teams.map(t => t.adjD)) ?? S.lgO;
+  S.lgPace = avg(...teams.map(t => t.pace)) ?? 68;
+  S.picks = (sheetRows(wb, "Picks", "Pick") || []).map(pickRow);
+  S.pickLog = (sheetRows(wb, "Pick Log", "Pick") || []).map(pickRow);
+  S.modelInfo = null;
+  const mi = sheetRows(wb, "Model", "Parameter");
+  if (mi) { S.modelInfo = {}; for (const r of mi) if (r.Parameter) S.modelInfo[String(r.Parameter)] = { value: r.Value, note: r.Note }; }
+  S.file = meta; S.loaded = true;
+  if (!S.team || !teamBy.has(S.team)) S.team = [...teams].sort((a, b) => (b.adjNet ?? -99) - (a.adjNet ?? -99))[0]?.name || null;
+  if (!S.conf || !S.confs.includes(S.conf)) S.conf = null;
+}
+
+function pickRow(r) {
+  return {
+    date: dateKey(r["Date"]), min: (t => t == null ? null : t > 1 ? Math.round(t) : Math.round(t * 1440))(num(r["Time (ET)"])), id: r["GameID"] == null ? null : String(r["GameID"]),
+    away: str(r["Away"]), home: str(r["Home"]), neutral: str(r["Neutral"]) === "Yes", type: str(r["Type"]), pick: str(r["Pick"]),
+    side: str(r["Side"]), line: num(r["Line"]), modelLine: num(r["Model Line"]), edge: num(r["Edge"]), conf: num(r["Confidence"]),
+    tier: str(r["Tier"]), flag: str(r["Flag"]), note: str(r["Note"]), modelMargin: num(r["Model Margin (Home)"]), modelTotal: num(r["Model Total"]), open: num(r["Open Line"]),
+    result: str(r["Result"]), units: num(r["Units"]), close: num(r["Close Line"]), clv: num(r["CLV"]),
+    homePts: num(r["Home Pts"]), awayPts: num(r["Away Pts"]),
+  };
+}
+
+/* ---------------------------------------------------------------- rosters (name, #, position, class, height; no stats) */
+function setRoster(players, meta) {
+  const m = new Map();
+  for (const p of players) {
+    if (!p.team || !p.name) continue;
+    if (!m.has(p.team)) m.set(p.team, []);
+    m.get(p.team).push({ name: String(p.name), num: p.num == null ? null : String(p.num), pos: p.pos || null, cls: p.cls || null, ht: p.ht || null });
+  }
+  S.roster = m; S.rosterMeta = meta || null;
+}
+function rosterFromWorkbook(wb) {
+  const rows = sheetRows(wb, "All Players", "Player");
+  if (!rows) return null;
+  return rows.map(r => ({ team: str(r["Team"]), name: str(r["Player"]), num: r["#"] == null ? null : String(r["#"]).replace(/\.0$/, ""), pos: str(r["Pos"]), cls: str(r["Class"]), ht: str(r["Ht"]) }));
+}
+function inches(ht) { const m = String(ht || "").match(/^(\d)\D+(\d{1,2})/); return m ? +m[1] * 12 + +m[2] : null; }
+function rosterTable(team, sortState, onSort) {
+  const players = S.roster.get(team) || [];
+  if (!players.length) return el("p", { class: "muted", text: S.roster.size ? "No roster for this team in the rosters file." : "No rosters loaded. Add college_basketball_rosters_player_stats.xlsx to the data, or load that file here." });
+  const order = { Fr: 1, So: 2, Jr: 3, Sr: 4, Gr: 5 };
+  return sortTable({
+    cols: [
+      { key: "num", label: "#", r: true, get: p => p.num == null ? null : (isNaN(+p.num) ? p.num : +p.num) },
+      { key: "name", label: "Player", get: p => p.name },
+      { key: "pos", label: "Pos", get: p => p.pos },
+      { key: "cls", label: "Class", get: p => order[p.cls] ?? null, fmt: (v, p) => p.cls || DASH },
+      { key: "ht", label: "Height", r: true, get: p => inches(p.ht), fmt: (v, p) => p.ht || DASH },
+    ],
+    rows: players, sort: sortState, onSort, maxH: "none",
+  });
+}
+function rosterSummary(team) {
+  const hs = (S.roster.get(team) || []).map(p => inches(p.ht)).filter(v => v != null);
+  if (!hs.length) return "";
+  const a = hs.reduce((x, y) => x + y, 0) / hs.length, tall = Math.max(...hs);
+  const fmtIn = v => `${Math.floor(v / 12)}-${Math.round(v % 12)}`;
+  return `${hs.length} players · average height ${fmtIn(a)} · tallest ${fmtIn(tall)}`;
+}
+
+/* ---------------------------------------------------------------- derived numbers */
+const PCT = [
+  { k: "adjNet", label: "Adj Net", hi: true, fmt: fs1 }, { k: "adjO", label: "Adj Offense", hi: true, fmt: f1 },
+  { k: "adjD", label: "Adj Defense", hi: false, fmt: f1 }, { k: "srs", label: "SRS", hi: true, fmt: fs1 },
+  { k: "pace", label: "Pace", hi: true, fmt: f1, neutral: true },
+  { k: "efg", label: "eFG%", hi: true, fmt: f1 }, { k: "oefg", label: "Opp eFG%", hi: false, fmt: f1 },
+  { k: "to", label: "TO%", hi: false, fmt: f1 }, { k: "oto", label: "Opp TO%", hi: true, fmt: f1 },
+  { k: "orb", label: "ORB%", hi: true, fmt: f1 }, { k: "oorb", label: "Opp ORB%", hi: false, fmt: f1 },
+];
+const PCT_BY = Object.fromEntries(PCT.map(p => [p.k, p]));
+function buildPercentiles() { for (const p of PCT) p.sorted = S.teams.map(t => t[p.k]).filter(v => v != null).sort((a, b) => a - b); }
+function lowerBound(a, v) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < v) lo = m + 1; else hi = m; } return lo; }
+function upperBound(a, v) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] <= v) lo = m + 1; else hi = m; } return lo; }
+/** Share of D-I teams this value beats (0-1), respecting whether higher or lower is better. */
+function percentile(k, v) {
+  const p = PCT_BY[k]; if (v == null || !p || p.sorted.length < 2) return null;
+  const a = p.sorted, n = a.length;
+  const worse = p.hi ? lowerBound(a, v) : n - upperBound(a, v);
+  return Math.min(1, Math.max(0, worse / (n - 1)));
+}
+function rankOf(k, v) {
+  const p = PCT_BY[k]; if (v == null || !p) return null;
+  const a = p.sorted;
+  return p.hi ? a.length - upperBound(a, v) + 1 : lowerBound(a, v) + 1;
+}
+function ordinal(n) { const s = ["th", "st", "nd", "rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+
+/* ---------------------------------------------------------------- the model
+   Projected points = team's Adj O x opponent's Adj D / D-I average, scaled to the
+   expected possessions (pace x pace / average pace). Home court splits HCA points
+   between the two sides. Probabilities treat the result as normally distributed
+   around the projection (spread error SD and total error SD below). */
+const MODEL_DEFAULTS = { hca: 3.0, sd: 11, sdTotal: 15, shrink: 0 };
+S.model = (() => { try { return { ...MODEL_DEFAULTS, ...JSON.parse(localStorage.getItem("cbb-model") || "{}") }; } catch (e) { return { ...MODEL_DEFAULTS }; } })();
+function saveModel() { try { localStorage.setItem("cbb-model", JSON.stringify(S.model)); } catch (e) { /* not saved */ } }
+const BREAK_EVEN = 110 / 210; // win rate needed at -110
+function phi(z) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
+}
+function project(homeName, awayName, neutral) {
+  const h = S.teamBy.get(homeName), a = S.teamBy.get(awayName);
+  if (!h || !a || [h.adjO, h.adjD, a.adjO, a.adjD].some(v => v == null)) return null;
+  const lgO = S.lgO || 105, lgD = S.lgD || lgO, lgP = S.lgPace || 68, k = 1 - (S.model.shrink || 0) / 100;
+  const regO = v => lgO + (v - lgO) * k, regD = v => lgD + (v - lgD) * k;
+  const poss = (h.pace ?? lgP) * (a.pace ?? lgP) / lgP;
+  const hc = neutral ? 0 : S.model.hca / 2;
+  // average offense vs average defense scores lgO points per 100 possessions
+  const hp = regO(h.adjO) * regD(a.adjD) / lgD * poss / 100 + hc;
+  const ap = regO(a.adjO) * regD(h.adjD) / lgD * poss / 100 - hc;
+  return { hp, ap, margin: hp - ap, total: hp + ap, poss, winH: phi((hp - ap) / S.model.sd) };
+}
+function modelMargin(homeName, awayName, neutral) { const p = project(homeName, awayName, neutral); return p ? p.margin : null; }
+const implied = ml => ml < 0 ? -ml / (-ml + 100) : 100 / (ml + 100);
+/** Model vs market for one game. spread > 0 means the model likes the home side more than the line does. */
+function edgesFor(g, p) {
+  const o = { line: g.spread ?? g.openSpread, tl: g.ou ?? g.openOu };
+  if (!p) return o;
+  if (o.line != null) { o.spread = p.margin + o.line; o.spreadSide = o.spread >= 0 ? g.home : g.away; o.coverProb = phi(Math.abs(o.spread) / S.model.sd); }
+  if (o.tl != null) { o.total = p.total - o.tl; o.totalSide = o.total >= 0 ? "Over" : "Under"; o.ouProb = phi(Math.abs(o.total) / S.model.sdTotal); }
+  if (g.homeMl != null && g.awayMl != null) {
+    const ih = implied(g.homeMl), ia = implied(g.awayMl);
+    o.mktH = ih / (ih + ia); o.mlEdgeH = p.winH - o.mktH;
+    o.mlSide = o.mlEdgeH >= 0 ? g.home : g.away; o.mlEdge = Math.abs(o.mlEdgeH);
+  }
+  return o;
+}
+/** Betting profile from games already played. */
+function profile(name) {
+  const all = (S.byTeam.get(name) || []).filter(r => r.result != null);
+  const last = n => all.slice(-n);
+  const form = rows => { const w = rows.filter(r => r.result === "W").length; return { rec: `${w}-${rows.length - w}`, margin: avg(...rows.map(r => r.margin)) }; };
+  return {
+    all: atsSummary(all), home: atsSummary(all.filter(r => r.site === "Home")), away: atsSummary(all.filter(r => r.site === "Away")),
+    neutral: atsSummary(all.filter(r => r.site === "Neutral")),
+    fav: atsSummary(all.filter(r => r.spread != null && r.spread < 0)), dog: atsSummary(all.filter(r => r.spread != null && r.spread > 0)),
+    l5: atsSummary(last(5)), l10: atsSummary(last(10)), f5: form(last(5)),
+    sos: avg(...all.map(r => r.oppRating)), n: all.length,
+  };
+}
+function restDays(name, date) {
+  if (!date) return null;
+  const prev = (S.byTeam.get(name) || []).filter(r => r.date && r.date < date).pop();
+  return prev ? Math.round((new Date(date + "T12:00:00Z") - new Date(prev.date + "T12:00:00Z")) / 864e5) : null;
+}
+const hasLines = s => s.c + s.m + s.p > 0;
+function atsText(s, withPct = true) { return hasLines(s) ? s.atsRec + (withPct && s.coverPct != null ? ` (${fpct0(s.coverPct)})` : "") : DASH; }
+function atsCell(s) {
+  if (!hasLines(s)) return el("span", { class: "muted", text: DASH });
+  const kind = s.coverPct >= 0.6 ? "good" : s.coverPct <= 0.4 ? "bad" : "even";
+  return el("span", { class: "pill " + kind, title: s.coverPct != null ? `Covers ${fpct0(s.coverPct)}` : null, text: s.atsRec });
+}
+function edgeBar(points, max = 6) { return el("span", { class: "ebar", "aria-hidden": "true" }, el("i", { style: `width:${Math.min(100, Math.abs(points) / max * 100)}%` })); }
+
+function atsSummary(rows) {
+  const o = { g: 0, c: 0, m: 0, p: 0, sdSum: 0, sdN: 0, ov: 0, un: 0, op: 0, odSum: 0, odN: 0 };
+  for (const r of rows) {
+    if (r.result == null) continue;
+    o.g++;
+    if (r.ats === "Cover") o.c++; else if (r.ats === "Miss") o.m++; else if (r.ats === "Push") o.p++;
+    if (r.sd != null) { o.sdSum += r.sd; o.sdN++; }
+    if (r.ouRes === "Over") o.ov++; else if (r.ouRes === "Under") o.un++; else if (r.ouRes === "Push") o.op++;
+    if (r.od != null) { o.odSum += r.od; o.odN++; }
+  }
+  o.coverPct = (o.c + o.m) ? o.c / (o.c + o.m) : null;
+  o.overPct = (o.ov + o.un) ? o.ov / (o.ov + o.un) : null;
+  o.sd = o.sdN ? o.sdSum / o.sdN : null;
+  o.od = o.odN ? o.odSum / o.odN : null;
+  o.atsRec = `${o.c}-${o.m}${o.p ? "-" + o.p : ""}`;
+  o.ouRec = `${o.ov}-${o.un}${o.op ? "-" + o.op : ""}`;
+  return o;
+}
+
+/* ---------------------------------------------------------------- shared UI bits */
+function teamLink(name, cls) {
+  if (!name) return el("span", { text: DASH });
+  if (!S.teamBy.has(name)) return el("span", { class: cls || "", text: name });
+  return el("button", { class: "linkish " + (cls || ""), type: "button", text: name, onclick: e => { e.stopPropagation(); goTeam(name); } });
+}
+function goTeam(name) { S.team = name; if (location.hash === "#team") render(); else location.hash = "team"; }
+function goMatchup(a, b, site, gameId) { S.mA = a; S.mB = b; S.mSite = site; S.mGame = gameId || null; if (location.hash === "#matchup") render(); else location.hash = "matchup"; }
+function resultPill(text, kind) { return el("span", { class: "pill " + kind, text }); }
+function teamDatalist() {
+  return el("datalist", { id: "teamlist" }, [...S.teams].sort((a, b) => a.name.localeCompare(b.name)).map(t => el("option", { value: t.name })));
+}
+function confSelect(id, value, onchange, allLabel = "All conferences") {
+  return el("select", { id, onchange: e => onchange(e.target.value) },
+    el("option", { value: "", text: allLabel }), S.confs.map(c => el("option", { value: c, text: c, selected: c === value })));
+}
+function seg(options, value, onpick, label) {
+  return el("div", { class: "seg", role: "group", "aria-label": label },
+    options.map(o => el("button", { type: "button", "aria-pressed": String(o === value), text: o, onclick: () => onpick(o) })));
+}
+
+/** Sortable table. cols: {key, label, get(row), fmt(v,row)?, r?:right-align, cell(row)?:Node, title?} */
+function sortTable({ cols, rows, sort, onSort, onRow, maxH }) {
+  const col = cols.find(c => c.key === sort.key) || cols[0];
+  const sorted = [...rows].sort((a, b) => {
+    const x = col.get(a), y = col.get(b);
+    if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * sort.dir;
+  });
+  const thead = el("thead", null, el("tr", null, cols.map(c => el("th", {
+    class: c.r ? "r" : "", scope: "col", title: c.title,
+    "aria-sort": c.key === col.key ? (sort.dir > 0 ? "ascending" : "descending") : null,
+  }, c.noSort ? c.label : el("button", { type: "button", onclick: () => onSort(c.key) }, c.label, c.key === col.key ? (sort.dir > 0 ? " ▲" : " ▼") : "")))));
+  const tbody = el("tbody", null, sorted.map((r, i) => el("tr", { class: onRow ? "click" : "", onclick: onRow ? () => onRow(r) : null },
+    cols.map(c => el("td", { class: c.r ? "r" : "" }, c.cell ? c.cell(r, i) : (c.fmt ? c.fmt(c.get(r), r) : (c.get(r) ?? DASH)))))));
+  const wrap = el("div", { class: "tablewrap" }, el("table", null, thead, tbody));
+  if (maxH) wrap.style.maxHeight = maxH;
+  return wrap;
+}
+function toggleSort(state, key, defaultDir = -1) { if (state.sort === key) state.dir *= -1; else { state.sort = key; state.dir = defaultDir; } render(); }
+
+/* ---------------------------------------------------------------- views */
+const VIEWS = { picks: viewPicks, games: viewGames, model: viewModel, team: viewTeam, matchup: viewMatchup, rankings: viewRankings, conferences: viewConferences, ats: viewAts };
+
+function viewEmpty(root, err) {
+  root.append(el("section", { class: "panel" },
+    el("div", { class: "drop", id: "drop" },
+      el("h2", { text: "Load your workbook" }),
+      el("p", { text: "Drop college_basketball_by_conference.xlsx anywhere on this page, or choose it from your PythonFun folder. The page reads the file right here in your browser. Nothing is uploaded and it makes no API calls, so your monthly limit isn't touched." }),
+      err ? el("p", { class: "error", text: err }) : null,
+      el("button", { class: "btn", type: "button", text: "Choose the workbook", onclick: () => $("#fileInput").click() }),
+      el("ul", null,
+        el("li", { text: "Picks: the pick engine's daily picks with confidence, reasons and its track record" }),
+        el("li", { text: "Games and Model board: any day's slate with lines, projected scores, spread and total edges, and each team's record against the spread" }),
+        el("li", { text: "Team lookup: ratings with national ranks, four factors, splits, ATS, and the full schedule" }),
+        el("li", { text: "Matchup: projected score, win chance, edges vs the line, ATS splits and where the edge comes from" }),
+        el("li", { text: "Rankings, conference standings, and ATS & totals leaderboards" }),
+        el("li", { text: "Rosters (name, number, position, class, height): also drop in college_basketball_rosters_player_stats.xlsx" })),
+      el("p", { text: "After the first load, this browser remembers the last file, so you only need to drop in a new one after each daily update." }))));
+}
+
+/* ---- shared date controls */
+function dateNav(date, confId) {
+  const setDate = d => { S.date = d; render(); };
+  return el("div", { class: "controls" },
+    el("button", { class: "btn", type: "button", "aria-label": "Previous day", text: "‹ Prev", onclick: () => setDate(addDays(date, -1)) }),
+    el("input", { type: "date", id: confId + "-date", value: date, "aria-label": "Date", onchange: e => e.target.value && setDate(e.target.value) }),
+    el("button", { class: "btn", type: "button", "aria-label": "Next day", text: "Next ›", onclick: () => setDate(addDays(date, 1)) }),
+    el("button", { class: "btn", type: "button", text: "Today", onclick: () => setDate(todayET()) }),
+    el("label", { for: confId }, "Conference", confSelect(confId, S.dateConf, v => { S.dateConf = v; render(); })));
+}
+function noGames(panel, date) {
+  const dates = [...new Set([...S.games.values()].map(g => g.date).filter(Boolean))].sort();
+  const near = dates.find(d => d > date) || dates[dates.length - 1];
+  panel.append(el("p", { class: "muted" }, "No games in the workbook for this day" + (S.dateConf ? " in " + S.dateConf : "") + ". ",
+    near && near !== date ? el("button", { class: "linkish", type: "button", text: `Jump to ${dateLabel(near)}`, onclick: () => { S.date = near; render(); } }) : null));
+}
+
+/* ---- Games */
+function gamesOn(date) {
+  const out = [];
+  for (const g of S.games.values()) if (g.date === date) out.push(g);
+  return out.sort((a, b) => (a.min ?? 9999) - (b.min ?? 9999) || a.home.localeCompare(b.home));
+}
+function favText(g, spread) {
+  if (spread == null) return null;
+  if (spread === 0) return "Pick'em";
+  return spread < 0 ? `${g.home} −${Math.abs(spread).toFixed(1)}` : `${g.away} −${spread.toFixed(1)}`;
+}
+function viewGames(root) {
+  const date = S.date || todayET();
+  let list = gamesOn(date);
+  if (S.dateConf) list = list.filter(g => g.homeConf === S.dateConf || g.awayConf === S.dateConf);
+  const panel = el("section", { class: "panel" },
+    el("h2", { text: (date === todayET() ? "Today · " : "") + dateLabel(date, true) }),
+    el("p", { class: "sub", text: `${plural(list.length, "game")}. Lines are shown from the favorite's side, and each team's record against the spread sits next to its name. The model line comes from projected scores (see Model board); click a game for the full matchup.` }),
+    dateNav(date, "gconf"));
+  if (!list.length) noGames(panel, date);
+  else panel.append(el("div", { class: "games" }, list.map(gameCard)));
+  root.append(panel);
+}
+function gameCard(g) {
+  const h = S.teamBy.get(g.home), a = S.teamBy.get(g.away);
+  const p = project(g.home, g.away, g.neutral), e = edgesFor(g, p);
+  const homeWon = g.final && g.homePts > g.awayPts;
+  const teamRow = (name, conf, t, pts, won, prefix) => el("div", { class: "g-team" + (g.final ? (won ? " win" : " loss") : "") },
+    el("span", { class: "rk num", text: t?.netRk ? "#" + t.netRk : "" }),
+    el("span", null, prefix ? el("span", { class: "muted", text: prefix + " " }) : null, teamLink(name, "tname"), el("span", { class: "cf", text: conf || "" }),
+      t && hasLines(t.atsAll) ? el("span", { class: "cf", title: "Record against the spread", text: ` · ATS ${t.atsAll.atsRec}` }) : null),
+    el("span", { class: "score num", text: g.final ? pts : "" }));
+  const lines = el("dl", { class: "g-lines" },
+    el("div", null, el("dt", { text: "Line" }), el("dd", null, favText(g, e.line) ?? DASH,
+      g.spread != null && g.openSpread != null && g.openSpread !== g.spread ? el("small", { text: ` (open ${fspread(g.openSpread)})` }) : null)),
+    el("div", null, el("dt", { text: "Total" }), el("dd", { class: "num", text: e.tl != null ? e.tl.toFixed(1) : DASH })),
+    el("div", null, el("dt", { text: "Model" }), el("dd", null, p == null ? DASH : `${p.margin >= 0 ? g.home : g.away} by ${Math.abs(p.margin).toFixed(1)}`,
+      p ? el("small", { text: ` · ${p.total.toFixed(0)} total` }) : null)));
+  const res = el("div", { class: "g-res" });
+  if (g.final) {
+    const hm = g.homePts - g.awayPts;
+    if (e.line != null) {
+      const x = hm + e.line;
+      res.append(x === 0 ? resultPill("Push vs line", "even") : resultPill(`${x > 0 ? g.home : g.away} covered by ${Math.abs(x).toFixed(1)}`, "good"));
+    }
+    if (e.tl != null) { const t = g.homePts + g.awayPts; res.append(resultPill(t === e.tl ? "Total push" : `${t > e.tl ? "Over" : "Under"} by ${Math.abs(t - e.tl).toFixed(1)}`, "even")); }
+  } else {
+    if (e.spread != null && Math.abs(e.spread) >= 0.5) res.append(resultPill(`Spread edge: ${e.spreadSide} ${Math.abs(e.spread).toFixed(1)}`, "edge"));
+    if (e.total != null && Math.abs(e.total) >= 1) res.append(resultPill(`${e.totalSide} ${Math.abs(e.total).toFixed(1)}`, "edge"));
+  }
+  const tags = [g.neutral ? "Neutral" : null, g.confGame ? "Conference" : null, g.final ? "Final" : (g.status && g.status !== "Scheduled" ? g.status : null)].filter(Boolean);
+  const open = () => goMatchup(g.away, g.home, g.neutral ? "neutral" : "b", g.id);
+  return el("article", { class: "game", tabindex: "0", "aria-label": `${g.away} at ${g.home}`, onclick: open, onkeydown: ev => { if (ev.key === "Enter") open(); } },
+    el("div", { class: "g-top" }, el("span", { class: "time num", text: fmtTime(g.min) }), tags.map(t => el("span", { class: "tag", text: t }))),
+    teamRow(g.away, g.awayConf, a, g.awayPts, g.final && !homeWon, null),
+    teamRow(g.home, g.homeConf, h, g.homePts, homeWon, g.neutral ? "vs" : "@"),
+    lines, res.childNodes.length ? res : null);
+}
+
+/* ---- Picks (from the pick engine's tabs) */
+function recordOf(list) {
+  const g = list.filter(p => ["W", "L", "P"].includes(p.result));
+  const w = g.filter(p => p.result === "W").length, l = g.filter(p => p.result === "L").length, pu = g.filter(p => p.result === "P").length;
+  const units = g.reduce((a, p) => a + (p.units ?? 0), 0);
+  const clvs = g.map(p => p.clv).filter(v => v != null);
+  return { n: g.length, w, l, p: pu, rec: `${w}-${l}${pu ? "-" + pu : ""}`, winPct: w + l ? w / (w + l) : null, units, roi: g.length ? units / g.length : null, clv: clvs.length ? clvs.reduce((a, b) => a + b, 0) / clvs.length : null };
+}
+function pickReasons(pk) {
+  const out = [];
+  const game = pk.id ? S.games.get(pk.id) : null;
+  if (pk.type === "Spread") {
+    const team = pk.side === "home" ? pk.home : pk.away, opp = pk.side === "home" ? pk.away : pk.home;
+    if (pk.modelLine != null && pk.line != null) {
+      const ml = pk.modelLine, tl = pk.side === "home" ? pk.line : -pk.line;
+      out.push(`Model makes ${team} ${fspread(ml)} vs the line ${fspread(tl)}; after learning how often it's right, it expects to beat the line by ${Math.abs(pk.edge ?? 0).toFixed(1)}.`);
+    }
+    const pr = profile(team), po = profile(opp);
+    const role = pk.line == null ? null : ((pk.side === "home" ? pk.line : -pk.line) < 0 ? ["favorite", pr.fav] : ["underdog", pr.dog]);
+    if (hasLines(pr.all)) out.push(`${team} ${pr.all.atsRec} ATS${role && hasLines(role[1]) ? `, ${role[1].atsRec} as ${role[0]}` : ""}${hasLines(pr.l5) ? `, ${pr.l5.atsRec} last 5` : ""}.`);
+    if (hasLines(po.all)) out.push(`${opp} ${po.all.atsRec} ATS${hasLines(po.l5) ? `, ${po.l5.atsRec} last 5` : ""}.`);
+    if (game && game.spread != null && game.openSpread != null && game.spread !== game.openSpread) {
+      const toward = game.spread < game.openSpread ? game.home : game.away;
+      out.push(`Line moved ${Math.abs(game.spread - game.openSpread).toFixed(1)} toward ${toward}${toward === team ? " (market agrees)" : " (market leaning the other way)"}.`);
+    }
+  } else {
+    if (pk.modelTotal != null && pk.line != null) out.push(`Model total ${pk.modelTotal.toFixed(1)} vs the line ${pk.line.toFixed(1)}; learned edge ${Math.abs(pk.edge ?? 0).toFixed(1)} toward the ${pk.side}.`);
+    const h = S.teamBy.get(pk.home), a = S.teamBy.get(pk.away);
+    if (h && a && h.pace != null && a.pace != null) out.push(`Tempo: ${pk.away} ${ordinal(rankOf("pace", a.pace))} fastest, ${pk.home} ${ordinal(rankOf("pace", h.pace))}.`);
+    const ph = profile(pk.home), pa = profile(pk.away);
+    out.push(`Over-under: ${pk.away} ${pa.all.ouRec}, ${pk.home} ${ph.all.ouRec}.`);
+  }
+  return out;
+}
+function viewPicks(root) {
+  const info = S.modelInfo;
+  if (!info) {
+    root.append(el("section", { class: "panel" }, el("h2", { text: "Picks" }),
+      el("p", { text: "This workbook has no picks yet. Picks come from the pick engine, which runs right after your records code and adds Picks, Pick Log and Model tabs to the workbook." }),
+      el("p", { class: "muted", text: "Set it up once (picks_engine notebook plus one %run line in your records notebook), then rebuild the site." })));
+    return;
+  }
+  const v = k => info[k]?.value;
+  const asOf = dateKey(v("As of")) || todayET();
+  const share = num(v("Learned share")) ?? 0, graded = num(v("Graded games")) ?? 0;
+  const todayAll = S.picks.filter(p => p.date === asOf).sort((a, b) => (b.conf ?? 0) - (a.conf ?? 0));
+  const today = todayAll.filter(p => !p.flag), flaggedToday = todayAll.filter(p => p.flag);
+
+  const head = el("section", { class: "panel" },
+    el("h2", { text: `Picks · ${dateLabel(asOf, true)}` }),
+    el("p", { class: "sub", text: `Only bets where the model, after learning from ${plural(graded, "graded game")}, gives itself at least ${fpct0(num(v("Lean pick bar")) ?? 0.545)} to win (Lean) or ${fpct0(num(v("Strong pick bar")) ?? 0.57)} (Strong). 52.4% breaks even at −110. Click a pick for the full matchup.` }));
+  if (asOf !== todayET()) head.append(el("p", { class: "error", text: `These picks are for ${dateLabel(asOf)}. Run the update to get today's.` }));
+  const card = pk => {
+    const game = pk.id ? S.games.get(pk.id) : null;
+    const open = () => goMatchup(pk.away, pk.home, pk.neutral ? "neutral" : "b", pk.id);
+    return el("article", { class: "pick" + (pk.flag ? " flagged" : pk.tier === "Strong" ? " strong" : ""), tabindex: "0", onclick: open, onkeydown: ev => { if (ev.key === "Enter") open(); } },
+      el("div", { class: "p-top" }, resultPill(pk.tier || "Pick", pk.tier === "Strong" ? "good" : "edge"), pk.flag ? resultPill("Flagged", "warn") : null,
+        el("span", { text: pk.type }), el("span", { class: "num", text: fmtTime(pk.min ?? game?.min) })),
+      el("div", { class: "p-main", text: pk.pick }),
+      el("div", { class: "muted", style: "font-size:13px" }, teamLink(pk.away), pk.neutral ? " vs " : " @ ", teamLink(pk.home)),
+      el("div", { class: "p-conf" }, el("span", null, el("b", { text: fpct0(pk.conf) }), " model chance"), el("span", { class: "muted", text: `edge ${Math.abs(pk.edge ?? 0).toFixed(1)} pts` })),
+      pk.flag ? el("div", { class: "flag", text: "⚠ " + pk.flag }) : null,
+      el("ul", null, pickReasons(pk).map(t => el("li", { text: t }))),
+      pk.note ? el("div", { class: "note", text: pk.note }) : null);
+  };
+  if (!today.length) head.append(el("p", { class: "muted", text: "No picks today: nothing cleared the confidence bar. That's the model working as intended on a day without a clear edge." }));
+  else head.append(el("div", { class: "picks" }, today.map(card)));
+  root.append(head);
+  if (flaggedToday.length) root.append(el("section", { class: "panel" },
+    el("h3", { text: "Flagged picks" }),
+    el("p", { class: "sub", text: "These cleared the confidence bar but broke a guardrail: the model and the line disagree by more than the limit. That usually means news the model can't see (an injury, a suspension, rest), so check before betting. They're graded separately from the main record." }),
+    el("div", { class: "picks" }, flaggedToday.map(card))));
+
+  /* track record */
+  const clean = S.pickLog.filter(p => !p.flag), flaggedRec = recordOf(S.pickLog.filter(p => p.flag));
+  const all = recordOf(clean), strong = recordOf(clean.filter(p => p.tier === "Strong")), lean = recordOf(clean.filter(p => p.tier === "Lean"));
+  const spreads = recordOf(clean.filter(p => p.type === "Spread")), totals = recordOf(clean.filter(p => p.type === "Total"));
+  const rec = el("section", { class: "panel" }, el("h3", { text: "Track record" }));
+  if (!all.n) rec.append(el("p", { class: "muted", text: "No graded picks yet. Results fill in automatically once games finish and the update runs again." }));
+  else {
+    rec.append(el("div", { class: "tiles" },
+      tile("Record", all.rec, all.winPct != null ? `${fpct0(all.winPct)} wins` : ""),
+      tile("Units", fs1(all.units).replace(".0", ".0"), `${all.roi != null ? (all.roi * 100).toFixed(1) + "% per bet" : ""}`),
+      tile("Avg CLV", all.clv == null ? DASH : fs1(all.clv), "Points better than the closing line"),
+      tile("Strong", strong.n ? strong.rec : DASH, strong.n ? `${fs1(strong.units)} units` : "none graded"),
+      tile("Lean", lean.n ? lean.rec : DASH, lean.n ? `${fs1(lean.units)} units` : "none graded"),
+      tile("Spreads / totals", `${spreads.n ? spreads.rec : DASH} · ${totals.n ? totals.rec : DASH}`, ""),
+      tile("Flagged picks", flaggedRec.n ? flaggedRec.rec : DASH, flaggedRec.n ? `${fs1(flaggedRec.units)} units · not in the record` : "none graded yet")),
+      el("p", { class: "sub", style: "margin-top:10px", text: "Closing line value (CLV) settles faster than wins and losses: a model that keeps getting better numbers than the closing line is finding real edges, even through a losing week. Win rates over fewer than a few hundred picks are mostly luck." }));
+    const box = el("div", { class: "chart" });
+    rec.append(el("h3", { text: "Units over time", style: "margin-top:14px" }), box);
+    requestAnimationFrame(() => unitsChart(box, clean));
+    const buckets = [[0.5, 0.55, "52–55%"], [0.55, 0.57, "55–57%"], [0.57, 0.6, "57–60%"], [0.6, 1.01, "60%+"]].map(([lo, hi, label]) => {
+      const r = recordOf(clean.filter(p => p.conf != null && p.conf >= lo && p.conf < hi));
+      return { label, r };
+    }).filter(b => b.r.n);
+    rec.append(el("h3", { text: "Does the confidence hold up?", style: "margin-top:14px" }),
+      el("p", { class: "sub", text: "Each confidence band's actual win rate. If the model is honest, the actual numbers should land near the band." }),
+      sortTable({ cols: [{ key: "b", label: "Model said", get: b => b.label, noSort: true }, { key: "n", label: "Picks", r: true, get: b => b.r.n, noSort: true },
+        { key: "rec", label: "Record", get: b => b.r.rec, noSort: true }, { key: "w", label: "Actual win %", r: true, get: b => b.r.winPct, fmt: fpct0, noSort: true },
+        { key: "u", label: "Units", r: true, get: b => b.r.units, fmt: fs1, noSort: true }], rows: buckets, sort: { key: "b", dir: 1 }, onSort: () => {} }));
+  }
+
+  /* model status */
+  const rows = ["Home court (pts)", "Rating weight", "Results rating weight", "Schedule gap weight", "Spread scale vs market", "Total adjustment (pts)", "Spread: share of gap that comes true", "Total: share of gap that comes true",
+    "Error vs spread SD", "Model avg miss (margin)", "Line avg miss (margin)", "Model avg miss (total)", "Line avg miss (total)"];
+  const status = el("section", { class: "panel" }, el("h3", { text: "What the model has learned" }),
+    el("p", { class: "sub", text: `${plural(graded, "graded game")} so far. Learned from results: ${fpct0(share)}; the rest is still its cautious starting beliefs.` }),
+    el("div", { class: "trust", role: "img", "aria-label": `${fpct0(share)} learned` }, el("i", { style: `width:${share * 100}%` })),
+    el("div", { class: "kv", style: "margin-top:10px" }, rows.filter(k => info[k] && info[k].value != null).map(k =>
+      el("div", { title: info[k].note || null }, el("span", { text: k }), el("span", { class: "num", text: typeof info[k].value === "number" ? String(+info[k].value.toFixed(3)) : String(info[k].value) })))),
+    el("p", { class: "sub", style: "margin-top:10px", text: "The most important line is “Spread: share of gap that comes true.” It's how much of the model's disagreement with the betting line actually happens. Near 0 means the line already knows what the model knows, and picks get rarer. It starts at 0.25 and moves with results." }));
+
+  /* history */
+  const hist = el("section", { class: "panel" }, el("h3", { text: "Pick history" }),
+    sortTable({
+      cols: [
+        { key: "date", label: "Date", get: p => p.date, fmt: v => v ? dateLabel(v) : DASH },
+        { key: "pick", label: "Pick", get: p => p.pick },
+        { key: "game", label: "Game", get: p => p.home, fmt: (v, p) => `${p.away} ${p.neutral ? "vs" : "@"} ${p.home}` },
+        { key: "tier", label: "Tier", get: p => p.tier, cell: p => el("span", null, p.tier || "", p.flag ? el("span", null, " ", resultPill("Flagged", "warn")) : null) },
+        { key: "conf", label: "Conf.", r: true, get: p => p.conf, fmt: fpct0 },
+        { key: "result", label: "Result", get: p => p.result, cell: p => ["W", "L", "P"].includes(p.result) ? resultPill(p.result, p.result === "W" ? "good" : p.result === "L" ? "bad" : "even") : el("span", { class: "muted", text: p.result || "" }) },
+        { key: "score", label: "Score", get: p => p.homePts, fmt: (v, p) => p.homePts == null ? DASH : `${p.awayPts}-${p.homePts}` },
+        { key: "units", label: "Units", r: true, get: p => p.units, fmt: v => v == null ? DASH : fs1(v) },
+        { key: "clv", label: "CLV", r: true, get: p => p.clv, fmt: fs1, title: "Points better (+) or worse (−) than the closing line" },
+      ],
+      rows: S.pickLog, sort: { key: S.histSort?.key || "date", dir: S.histSort?.dir || -1 },
+      onSort: k => { const h = S.histSort || { key: "date", dir: -1 }; S.histSort = h.key === k ? { key: k, dir: -h.dir } : { key: k, dir: -1 }; render(); },
+      onRow: p => goMatchup(p.away, p.home, p.neutral ? "neutral" : "b", p.id), maxH: "60vh",
+    }));
+  root.append(el("div", { class: "grid2" }, rec, status), hist);
+}
+function unitsChart(box, log) {
+  const g = log.filter(p => ["W", "L", "P"].includes(p.result) && p.date).sort((a, b) => a.date.localeCompare(b.date));
+  const byDay = [];
+  for (const p of g) { const last = byDay[byDay.length - 1]; if (last && last.date === p.date) last.u += p.units ?? 0; else byDay.push({ date: p.date, u: p.units ?? 0 }); }
+  let run = 0; const pts = byDay.map(d => ({ date: d.date, u: (run += d.u), day: d.u }));
+  if (pts.length < 2) { box.replaceChildren(el("p", { class: "muted", text: "The chart appears after two days of graded picks." })); return; }
+  const W = Math.max(280, box.clientWidth), H = 200, m = { t: 10, r: 12, b: 24, l: 40 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const lo = Math.min(0, ...pts.map(p => p.u)), hi = Math.max(0, ...pts.map(p => p.u));
+  const step = Math.max(1, Math.ceil((hi - lo) / 4)), y0 = Math.floor(lo / step) * step, y1 = Math.ceil(hi / step) * step || step;
+  const X = i => m.l + (i / (pts.length - 1)) * iw, Y = v => m.t + (1 - (v - y0) / (y1 - y0)) * ih;
+  const svg = sv("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Cumulative units" });
+  const grid = sv("g", { class: "grid" });
+  for (let v = y0; v <= y1 + 1e-9; v += step) grid.append(sv("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v) }), sv("text", { x: m.l - 6, y: Y(v) + 4, "text-anchor": "end", text: v > 0 ? "+" + v : String(v) }));
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(p.u).toFixed(1)}`).join("");
+  const area = `${path}L${X(pts.length - 1).toFixed(1)},${Y(0).toFixed(1)}L${X(0).toFixed(1)},${Y(0).toFixed(1)}Z`;
+  const last = pts[pts.length - 1];
+  svg.append(grid, sv("line", { class: "zero", x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0) }),
+    sv("path", { d: area, fill: "var(--pos)", opacity: 0.12 }), sv("path", { d: path, fill: "none", stroke: "var(--pos)", "stroke-width": 2, "stroke-linejoin": "round" }),
+    sv("circle", { cx: X(pts.length - 1), cy: Y(last.u), r: 4, fill: "var(--pos)", stroke: "var(--panel)", "stroke-width": 2 }),
+    sv("text", { x: m.l, y: H - 6, text: dateLabel(pts[0].date).replace(/^\w+, /, "") }),
+    sv("text", { x: W - m.r, y: H - 6, "text-anchor": "end", text: dateLabel(last.date).replace(/^\w+, /, "") }));
+  pts.forEach((p, i) => svg.append(sv("rect", { x: X(i) - iw / pts.length / 2, y: m.t, width: iw / pts.length, height: ih, fill: "transparent",
+    onmousemove: e => showTip(e, dateLabel(p.date), [`Day ${fs1(p.day)} units`, `Running total ${fs1(p.u)}`]), onmouseleave: hideTip })));
+  box.replaceChildren(svg);
+}
+
+/* ---- Model board */
+function modelSettings() {
+  const M = S.model;
+  const field = (id, label, key, step, min, max, title) => el("label", { for: id, title }, label,
+    el("input", { type: "number", id, step, min, max, value: M[key], onchange: ev => { const v = parseFloat(ev.target.value); if (Number.isFinite(v)) { M[key] = Math.min(max, Math.max(min, v)); saveModel(); render(); } } }));
+  return el("details", { class: "settings", open: S.settingsOpen || null, ontoggle: ev => { S.settingsOpen = ev.target.open; } },
+    el("summary", { text: "Model settings" }),
+    el("div", { class: "controls" },
+      field("m-hca", "Home court (pts)", "hca", "0.5", 0, 8, "Points added for the home team on a non-neutral floor"),
+      field("m-sd", "Spread error SD", "sd", "0.5", 6, 16, "How far real margins typically land from the projection. Bigger = less confident probabilities"),
+      field("m-sdt", "Total error SD", "sdTotal", "0.5", 8, 24, "How far real totals typically land from the projection"),
+      field("m-shrink", "Pull ratings to average (%)", "shrink", "5", 0, 60, "Early in the season, ratings are noisy. Pulling them toward D-I average makes projections more cautious"),
+      el("button", { class: "btn", type: "button", text: "Reset", onclick: () => { Object.assign(M, MODEL_DEFAULTS); saveModel(); render(); } })));
+}
+function viewModel(root) {
+  const date = S.date || todayET();
+  let list = gamesOn(date);
+  if (S.dateConf) list = list.filter(g => g.homeConf === S.dateConf || g.awayConf === S.dateConf);
+  const minEdge = S.minEdge ?? 0;
+  const rows = list.map(g => {
+    const p = project(g.home, g.away, g.neutral), e = edgesFor(g, p);
+    return { g, p, e, ha: S.teamBy.get(g.away), hh: S.teamBy.get(g.home), pa: profile(g.away), ph: profile(g.home) };
+  }).filter(r => minEdge <= 0 || Math.max(Math.abs(r.e.spread ?? 0), Math.abs(r.e.total ?? 0)) >= minEdge);
+  const best = rows.filter(r => !r.g.final && r.e.spread != null).sort((x, y) => Math.abs(y.e.spread) - Math.abs(x.e.spread)).slice(0, 3);
+  const bestT = rows.filter(r => !r.g.final && r.e.total != null).sort((x, y) => Math.abs(y.e.total) - Math.abs(x.e.total)).slice(0, 3);
+
+  const panel = el("section", { class: "panel" },
+    el("h2", { text: "Model board · " + dateLabel(date, true) }),
+    el("p", { class: "sub", text: `Projected scores from adjusted offense, adjusted defense and pace, compared with the posted lines. Spread and total edges are in points; the % is the model's chance that side wins the bet, and at −110 you need ${(BREAK_EVEN * 100).toFixed(1)}% to break even. Early-season ratings are noisy, so treat small edges as noise.` }),
+    dateNav(date, "mconf"),
+    el("div", { class: "controls" }, el("label", { for: "medge" }, "Only games with an edge of at least",
+      el("input", { type: "number", id: "medge", min: "0", max: "20", step: "0.5", value: minEdge, style: "width:64px", onchange: ev => { S.minEdge = Math.max(0, +ev.target.value || 0); render(); } }), "pts")),
+    modelSettings());
+  root.append(panel);
+  if (!list.length) { noGames(panel, date); return; }
+
+  if (best.length || bestT.length) {
+    const pick = (r, kind) => {
+      const e = r.e, sideTeam = kind === "spread" ? e.spreadSide : null;
+      const txt = kind === "spread"
+        ? `${sideTeam} ${fspread(sideTeam === r.g.home ? e.line : -e.line)}`
+        : `${e.totalSide} ${e.tl.toFixed(1)}`;
+      const edge = kind === "spread" ? e.spread : e.total, prob = kind === "spread" ? e.coverProb : e.ouProb;
+      return el("div", { class: "tile", style: "cursor:pointer", onclick: () => goMatchup(r.g.away, r.g.home, r.g.neutral ? "neutral" : "b", r.g.id) },
+        el("div", { class: "k", text: `${r.g.away} ${r.g.neutral ? "vs" : "@"} ${r.g.home}` }),
+        el("div", { class: "v", style: "font-size:22px", text: txt }),
+        el("div", { class: "s", text: `Edge ${Math.abs(edge).toFixed(1)} pts · model ${fpct0(prob)}` }));
+    };
+    root.append(el("div", { class: "grid2" },
+      el("section", { class: "panel" }, el("h3", { text: "Biggest spread edges" }), el("div", { class: "tiles" }, best.map(r => pick(r, "spread")))),
+      el("section", { class: "panel" }, el("h3", { text: "Biggest total edges" }), el("div", { class: "tiles" }, bestT.map(r => pick(r, "total"))))));
+  }
+
+  const sortState = S.modelSort || (S.modelSort = { sort: "spreadEdge", dir: -1 });
+  root.append(el("section", { class: "panel" }, el("h3", { text: "Every game" }),
+    el("p", { class: "sub", text: "Click a row for the full matchup. ATS columns are each team's season record against the spread; L5 is the last five games." }),
+    sortTable({
+      cols: [
+        { key: "time", label: "Time", get: r => r.g.min, fmt: v => fmtTime(v) },
+        { key: "game", label: "Game", get: r => r.g.home, cell: r => el("span", null, teamLink(r.g.away), el("span", { class: "muted", text: r.g.neutral ? " vs " : " @ " }), teamLink(r.g.home)) },
+        { key: "line", label: "Line", get: r => r.e.line, fmt: (v, r) => favText(r.g, v) ?? DASH },
+        { key: "model", label: "Model", get: r => r.p?.margin, fmt: (v, r) => v == null ? DASH : `${v >= 0 ? r.g.home : r.g.away} ${Math.abs(v).toFixed(1)}` },
+        { key: "spreadEdge", label: "Spread edge", get: r => r.e.spread == null ? null : Math.abs(r.e.spread), cell: r => r.e.spread == null ? el("span", { class: "muted", text: DASH }) : el("span", null, `${r.e.spreadSide} ${Math.abs(r.e.spread).toFixed(1)}`, edgeBar(r.e.spread)) },
+        { key: "cover", label: "Cover %", r: true, get: r => r.e.coverProb, fmt: fpct0 },
+        { key: "tl", label: "Total", r: true, get: r => r.e.tl, fmt: v => v == null ? DASH : v.toFixed(1) },
+        { key: "mt", label: "Model total", r: true, get: r => r.p?.total, fmt: v => v == null ? DASH : v.toFixed(1) },
+        { key: "totalEdge", label: "Total edge", get: r => r.e.total == null ? null : Math.abs(r.e.total), cell: r => r.e.total == null ? el("span", { class: "muted", text: DASH }) : el("span", null, `${r.e.totalSide} ${Math.abs(r.e.total).toFixed(1)}`, edgeBar(r.e.total, 8)) },
+        { key: "ou", label: "O/U %", r: true, get: r => r.e.ouProb, fmt: fpct0 },
+        { key: "win", label: "Win %", get: r => r.p ? Math.max(r.p.winH, 1 - r.p.winH) : null, fmt: (v, r) => v == null ? DASH : `${r.p.winH >= 0.5 ? r.g.home : r.g.away} ${fpct0(v)}` },
+        { key: "ml", label: "ML value", get: r => r.e.mlEdge, fmt: (v, r) => v == null || v < 0.005 ? DASH : `${r.e.mlSide} +${(v * 100).toFixed(1)}%`, title: "Model win % minus the moneyline's no-vig win %" },
+        { key: "atsA", label: "ATS away", get: r => r.pa.all.coverPct, cell: r => atsCell(r.pa.all) },
+        { key: "atsH", label: "ATS home", get: r => r.ph.all.coverPct, cell: r => atsCell(r.ph.all) },
+        { key: "l5", label: "L5 ATS (A / H)", get: r => r.pa.l5.coverPct, fmt: (v, r) => `${hasLines(r.pa.l5) ? r.pa.l5.atsRec : DASH} / ${hasLines(r.ph.l5) ? r.ph.l5.atsRec : DASH}` },
+        { key: "res", label: "Result", get: r => r.g.final ? 1 : 0, cell: r => r.g.final ? el("span", { text: `${r.g.awayPts}-${r.g.homePts}` }) : el("span", { class: "muted", text: "" }) },
+      ],
+      rows, sort: { key: sortState.sort, dir: sortState.dir },
+      onSort: k => toggleSort(sortState, k, ["time", "game", "line"].includes(k) ? 1 : -1),
+      onRow: r => goMatchup(r.g.away, r.g.home, r.g.neutral ? "neutral" : "b", r.g.id),
+    })));
+}
+
+/* ---- Team lookup */
+function teamPicker(id, value, onpick, placeholder) {
+  const input = el("input", { type: "search", id, list: "teamlist", value: value || "", placeholder, "aria-label": placeholder, autocomplete: "off" });
+  const tryPick = () => { const v = input.value.trim(); const hit = S.teamBy.has(v) ? v : S.teams.find(t => t.name.toLowerCase() === v.toLowerCase())?.name; if (hit && hit !== value) onpick(hit); };
+  input.addEventListener("change", tryPick);
+  input.addEventListener("input", () => { if (S.teamBy.has(input.value)) tryPick(); });
+  return input;
+}
+function viewTeam(root) {
+  const t = S.teamBy.get(S.team);
+  const head = el("section", { class: "panel" },
+    el("div", { class: "controls" }, teamPicker("tsearch", "", goTeam, "Search a team…"), teamDatalist(),
+      t ? el("button", { class: "btn", type: "button", text: "Compare with…", onclick: () => goMatchup(t.name, S.mB && S.mB !== t.name ? S.mB : null, "neutral", null) }) : null));
+  root.append(head);
+  if (!t) { head.append(el("p", { class: "muted", text: "Pick a team to see its profile." })); return; }
+  const rows = S.byTeam.get(t.name) || [];
+  head.append(
+    el("div", { class: "t-head" }, el("h2", { text: t.name }),
+      el("span", { class: "meta" }, `${t.conf || ""} · ${t.rec || DASH} overall · ${t.confRec || DASH} conference`, t.mascot ? ` · ${t.mascot}` : "")),
+    el("div", { class: "tiles" },
+      tile("Adj Net", fs1(t.adjNet), t.netRk ? `${ordinal(t.netRk)} nationally` : ""),
+      tile("Adj Offense", f1(t.adjO), t.oRk ? `${ordinal(t.oRk)}` : ""),
+      tile("Adj Defense", f1(t.adjD), t.dRk ? `${ordinal(t.dRk)} (lower is better)` : ""),
+      tile("SRS", fs1(t.srs), t.srs != null ? `${ordinal(rankOf("srs", t.srs))}` : ""),
+      tile("Pace", f1(t.pace), t.pace != null ? `${ordinal(rankOf("pace", t.pace))} fastest` : ""),
+      tile("ATS", t.atsAll.atsRec, t.atsAll.coverPct != null ? `${fpct0(t.atsAll.coverPct)} cover · avg ${fs1(t.atsAll.sd)}` : "no lines yet")));
+
+  const factors = el("section", { class: "panel" }, el("h3", { text: "Four factors vs the nation" }),
+    el("p", { class: "sub", text: "Bar length = share of D-I teams this team is better than, so a longer bar is always better (lower is better for TO%, Opp eFG% and Opp ORB%)." }),
+    el("div", { class: "bars" }, ["efg", "oefg", "to", "oto", "orb", "oorb", "adjO", "adjD"].map(k => pbar(k, t[k]))));
+  const splits = el("section", { class: "panel" }, el("h3", { text: "Where they win" }),
+    el("div", { class: "splits" },
+      [["Home", t.homeRec, t.homePM], ["Away", t.awayRec, t.awayPM], ["Neutral", t.neuRec, t.neuPM]].map(([k, r, pm]) =>
+        el("div", { class: "tile" }, el("div", { class: "k", text: k }), el("div", { class: "v num", text: r || "0-0" }), el("div", { class: "s", text: pm != null ? `${fs1(pm)} per game` : "no games yet" })))),
+    el("div", { class: "kv", style: "margin-top:12px" },
+      el("div", null, el("span", { text: "Best win" }), el("span", { text: t.best || DASH })),
+      el("div", null, el("span", { text: "Worst loss" }), el("span", { text: t.worst || DASH })),
+      atsSiteLine(rows, "Home"), atsSiteLine(rows, "Away"), atsSiteLine(rows, "Neutral"),
+      el("div", null, el("span", { text: "Totals (over-under)" }), el("span", { text: `${t.atsAll.ouRec}${t.atsAll.overPct != null ? " · " + fpct0(t.atsAll.overPct) + " overs" : ""}` }))));
+  root.append(el("div", { class: "grid2" }, factors, splits));
+
+  const pr = profile(t.name);
+  const nextRow = rows.find(r => r.result == null && r.date && r.date >= todayET());
+  const betting = el("section", { class: "panel" }, el("h3", { text: "Betting profile" }),
+    el("div", { class: "kv" },
+      [["Overall ATS", atsText(pr.all)], ["Avg vs spread", fs1(pr.all.sd)], ["ATS at home", atsText(pr.home)], ["ATS away", atsText(pr.away)],
+       ["ATS neutral", atsText(pr.neutral)], ["ATS as favorite", atsText(pr.fav)], ["ATS as underdog", atsText(pr.dog)],
+       ["Last 5 ATS", atsText(pr.l5, false)], ["Last 10 ATS", atsText(pr.l10, false)],
+       ["Over-under", `${pr.all.ouRec}${pr.all.overPct != null ? " (" + fpct0(pr.all.overPct) + " over)" : ""}`],
+       ["Last 5 form", pr.f5.rec !== "0-0" ? `${pr.f5.rec}, ${fs1(pr.f5.margin)} per game` : DASH],
+       ["Schedule strength", pr.sos == null ? DASH : `${fs1(pr.sos)} avg opp rating`]]
+        .map(([k, v]) => el("div", null, el("span", { text: k }), el("span", { class: "num", text: v })))));
+  const nextPanel = el("section", { class: "panel" }, el("h3", { text: "Next game" }));
+  if (!nextRow) nextPanel.append(el("p", { class: "muted", text: "No upcoming games in the workbook." }));
+  else {
+    const g = [...S.games.values()].find(x => x.date === nextRow.date && ((x.home === t.name && x.away === nextRow.opp) || (x.away === t.name && x.home === nextRow.opp)));
+    const p = g ? project(g.home, g.away, g.neutral) : null, e = g ? edgesFor(g, p) : {};
+    nextPanel.append(el("div", { class: "kv" },
+      el("div", null, el("span", { text: "Opponent" }), el("span", null, nextRow.site === "Away" ? "@ " : "vs ", teamLink(nextRow.opp), nextRow.site === "Neutral" ? " (N)" : "")),
+      el("div", null, el("span", { text: "When" }), el("span", { text: `${dateLabel(nextRow.date)} · ${fmtTime(nextRow.min)}` })),
+      el("div", null, el("span", { text: "Line" }), el("span", { text: g ? (favText(g, e.line) ?? "not posted") : DASH })),
+      el("div", null, el("span", { text: "Model" }), el("span", { text: p ? `${p.margin >= 0 ? g.home : g.away} by ${Math.abs(p.margin).toFixed(1)}, total ${p.total.toFixed(1)}` : DASH })),
+      e.spread != null ? el("div", null, el("span", { text: "Spread edge" }), el("span", { text: `${e.spreadSide} ${Math.abs(e.spread).toFixed(1)} (${fpct0(e.coverProb)})` })) : null),
+      g ? el("button", { class: "btn", type: "button", style: "margin-top:10px", text: "Open matchup", onclick: () => goMatchup(g.away, g.home, g.neutral ? "neutral" : "b", g.id) }) : null);
+  }
+  root.append(el("div", { class: "grid2" }, betting, nextPanel));
+
+  const rs = S.rosterSort || (S.rosterSort = { key: "ht", dir: -1 });
+  root.append(el("section", { class: "panel", id: "roster" }, el("h3", { text: "Roster" }),
+    el("p", { class: "sub", text: rosterSummary(t.name) || "Name, number, position, class and height." }),
+    rosterTable(t.name, rs, k => { S.rosterSort = rs.key === k ? { key: k, dir: -rs.dir } : { key: k, dir: k === "ht" ? -1 : 1 }; render(); })));
+
+  const played = rows.filter(r => r.result != null);
+  const chartPanel = el("section", { class: "panel" }, el("h3", { text: "Game by game" }),
+    el("p", { class: "sub", text: played.length ? "Each bar is the final margin. The dark tick is the margin the spread expected: a bar past its tick covered." : "No games played yet." }));
+  root.append(chartPanel);
+  if (played.length) {
+    const box = el("div", { class: "chart" });
+    chartPanel.append(box, el("div", { class: "legend" },
+      el("span", null, el("i", { style: "background:var(--pos)" }), "Win margin"),
+      el("span", null, el("i", { style: "background:var(--neg)" }), "Loss margin"),
+      el("span", null, el("i", { style: "background:var(--ink);height:3px" }), "Spread's expected margin")));
+    requestAnimationFrame(() => marginChart(box, played));
+  }
+
+  root.append(el("section", { class: "panel" }, el("h3", { text: "Schedule & results" }),
+    sortTable({
+      cols: [
+        { key: "date", label: "Date", get: r => r.date, fmt: v => v ? dateLabel(v) : DASH },
+        { key: "site", label: "Site", get: r => r.site },
+        { key: "opp", label: "Opponent", get: r => r.opp, cell: r => el("span", null, teamLink(r.opp), r.oppConf ? el("span", { class: "muted", text: " " + r.oppConf }) : null) },
+        { key: "oppRating", label: "Opp Rtg", r: true, get: r => r.oppRating, fmt: fs1 },
+        { key: "result", label: "Result", get: r => r.result, cell: r => r.result ? el("span", null, resultPill(r.result, r.result === "W" ? "good" : "bad"), " ", r.score || "") : el("span", { class: "muted", text: fmtTime(r.min) }) },
+        { key: "spread", label: "Spread", r: true, get: r => r.spread, fmt: fspread },
+        { key: "ats", label: "ATS", get: r => r.ats, cell: r => r.ats ? resultPill(r.ats, r.ats === "Cover" ? "good" : r.ats === "Miss" ? "bad" : "even") : el("span", { text: "" }) },
+        { key: "sd", label: "vs Spread", r: true, get: r => r.sd, fmt: fs1, title: "Margin + spread: how much they beat (+) or missed (−) the line by" },
+        { key: "ou", label: "O/U", r: true, get: r => r.ou, fmt: v => v == null ? DASH : v.toFixed(1) },
+        { key: "ouRes", label: "Total", get: r => r.ouRes, cell: r => r.ouRes ? el("span", null, r.ouRes, r.total != null ? el("span", { class: "muted", text: " " + r.total }) : null) : el("span", { text: "" }) },
+      ],
+      rows, sort: { key: S.teamSort?.key || "date", dir: S.teamSort?.dir || 1 },
+      onSort: k => { const s = S.teamSort || { key: "date", dir: 1 }; S.teamSort = s.key === k ? { key: k, dir: -s.dir } : { key: k, dir: k === "date" ? 1 : -1 }; render(); },
+    })));
+}
+function tile(k, v, s) { return el("div", { class: "tile" }, el("div", { class: "k", text: k }), el("div", { class: "v num", text: v }), el("div", { class: "s", text: s || "" })); }
+function pbar(k, v) {
+  const p = PCT_BY[k], pc = percentile(k, v);
+  return el("div", { class: "pbar" }, el("span", { text: p.label }),
+    el("div", { class: "track", role: "img", "aria-label": pc == null ? "no data" : `better than ${fpct0(pc)} of teams` },
+      el("div", { class: "fill", style: `width:${pc == null ? 0 : Math.max(2, pc * 100)}%` })),
+    el("span", { class: "val num" }, p.fmt(v), el("small", { text: pc == null ? "" : ` · ${Math.round(pc * 100)}th` })));
+}
+function atsSiteLine(rows, site) {
+  const s = atsSummary(rows.filter(r => r.site === site));
+  return el("div", null, el("span", { text: `ATS ${site.toLowerCase()}` }), el("span", { text: s.c + s.m + s.p ? `${s.atsRec} · avg ${fs1(s.sd)}` : DASH }));
+}
+function marginChart(box, played) {
+  const W = Math.max(280, box.clientWidth), H = 220, m = { t: 10, r: 8, b: 26, l: 34 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const vals = played.flatMap(r => [r.margin, r.spread != null ? -r.spread : null]).filter(v => v != null);
+  const ext = Math.max(10, ...vals.map(Math.abs));
+  const step = ext > 40 ? 20 : 10, top = Math.ceil(ext / step) * step;
+  const y = v => m.t + ih / 2 - (v / top) * (ih / 2);
+  const bw = iw / played.length, barW = Math.max(3, Math.min(28, bw - 2));
+  const svg = sv("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Final margin by game" });
+  const grid = sv("g", { class: "grid" });
+  for (let v = -top; v <= top; v += step) {
+    grid.append(sv("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }), sv("text", { x: m.l - 6, y: y(v) + 4, "text-anchor": "end", text: v > 0 ? "+" + v : String(v) }));
+  }
+  svg.append(grid, sv("line", { class: "zero", x1: m.l, x2: W - m.r, y1: y(0), y2: y(0) }));
+  played.forEach((r, i) => {
+    const cx = m.l + bw * i + bw / 2, v = r.margin ?? 0;
+    const y0 = y(0), y1 = y(v);
+    const g = sv("g", {
+      onmousemove: e => showTip(e, `${r.site === "Away" ? "@" : "vs"} ${r.opp}${r.site === "Neutral" ? " (N)" : ""}`, [
+        `${dateLabel(r.date)} · ${r.result} ${r.score || ""}`, r.spread != null ? `Spread ${fspread(r.spread)} · ${r.ats || ""} (${fs1(r.sd)})` : "No line", r.oppRating != null ? `Opp rating ${fs1(r.oppRating)}` : null]),
+      onmouseleave: hideTip, onclick: () => goTeam(r.opp), style: "cursor:pointer",
+    });
+    g.append(sv("rect", { x: m.l + bw * i, y: m.t, width: bw, height: ih, fill: "transparent" }));
+    g.append(sv("rect", { x: cx - barW / 2, y: Math.min(y0, y1), width: barW, height: Math.max(1, Math.abs(y1 - y0)), rx: Math.min(4, barW / 2), fill: v >= 0 ? "var(--pos)" : "var(--neg)" }));
+    if (r.spread != null) g.append(sv("line", { x1: cx - barW / 2 - 2, x2: cx + barW / 2 + 2, y1: y(-r.spread), y2: y(-r.spread), stroke: "var(--ink)", "stroke-width": 2.5, "stroke-linecap": "round" }));
+    svg.append(g);
+  });
+  const every = Math.ceil(played.length / Math.max(1, Math.floor(iw / 56)));
+  played.forEach((r, i) => { if (i % every === 0) svg.append(sv("text", { x: m.l + bw * i + bw / 2, y: H - 8, "text-anchor": "middle", text: dateLabel(r.date).replace(/^\w+, /, "") })); });
+  box.replaceChildren(svg);
+}
+
+/* ---- Matchup */
+function findGame(a, b) {
+  const list = [...S.games.values()].filter(g => (g.home === a && g.away === b) || (g.home === b && g.away === a));
+  if (S.mGame) { const g = S.games.get(S.mGame); if (g && list.includes(g)) return g; }
+  return list.filter(g => !g.final).sort((x, y) => (x.date || "").localeCompare(y.date || ""))[0] || null;
+}
+function autoSite() {
+  const g = S.mA && S.mB ? findGame(S.mA, S.mB) : null;
+  if (g) { S.mGame = g.id; S.mSite = g.neutral ? "neutral" : g.home === S.mB ? "b" : "a"; } else S.mGame = null;
+}
+function viewMatchup(root) {
+  const A = S.teamBy.get(S.mA), B = S.teamBy.get(S.mB);
+  const panel = el("section", { class: "panel" }, el("h2", { text: "Matchup" }),
+    el("div", { class: "controls" },
+      teamPicker("ma", S.mA, v => { S.mA = v; autoSite(); render(); }, "Team A (away)"),
+      el("span", { class: "muted", text: S.mSite === "neutral" ? "vs" : "at" }),
+      teamPicker("mb", S.mB, v => { S.mB = v; autoSite(); render(); }, "Team B (home)"), teamDatalist(),
+      seg(["Neutral", "B at home", "A at home"], { neutral: "Neutral", b: "B at home", a: "A at home" }[S.mSite], o => { S.mSite = { "Neutral": "neutral", "B at home": "b", "A at home": "a" }[o]; render(); }, "Site"),
+      A && B ? el("button", { class: "btn", type: "button", text: "Swap", onclick: () => { [S.mA, S.mB] = [S.mB, S.mA]; S.mSite = { a: "b", b: "a", neutral: "neutral" }[S.mSite]; render(); } }) : null));
+  root.append(panel);
+  if (!A || !B) { panel.append(el("p", { class: "muted", text: "Pick two teams, or click any game on the Games or Model board tab." })); return; }
+
+  const neutral = S.mSite === "neutral";
+  const home = S.mSite === "a" ? A : B, away = home === A ? B : A;
+  const p = project(home.name, away.name, neutral);
+  const game = findGame(A.name, B.name);
+  const lineApplies = game && (neutral ? game.neutral : (!game.neutral && game.home === home.name));
+  const e = lineApplies ? edgesFor(game, p) : {};
+  if (game && !lineApplies) panel.append(el("p", { class: "sub", text: `These teams play ${dateLabel(game.date)} (${game.neutral ? "neutral site" : game.home + " at home"}). Switch the site to match it to see the line and edges.` }));
+  else if (game) panel.append(el("p", { class: "sub", text: `${game.final ? "Played" : "Scheduled"} ${dateLabel(game.date)}${game.min != null ? " · " + fmtTime(game.min) : ""}${game.venue ? " · " + game.venue : ""}. Lines below come from that game.` }));
+
+  /* projection */
+  const proj = el("section", { class: "panel" }, el("h3", { text: "Projection" }));
+  if (!p) proj.append(el("p", { class: "muted", text: "Needs both teams' adjusted offense and defense." }));
+  else {
+    const ptsOf = t => t === home ? p.hp : p.ap, winOf = t => t === home ? p.winH : 1 - p.winH;
+    const fav = p.margin >= 0 ? home : away;
+    proj.append(
+      el("div", { class: "score-board" },
+        [A, B].map(t => el("div", { class: "sb-row" + (t === fav ? " fav" : "") }, el("span", { class: "sb-name", text: t.name }), el("span", { class: "sb-pts num", text: ptsOf(t).toFixed(1) })))),
+      el("p", { class: "sub", style: "margin:4px 0 8px", text: `${fav.name} by ${Math.abs(p.margin).toFixed(1)} · total ${p.total.toFixed(1)} · about ${p.poss.toFixed(0)} possessions · ${neutral ? "neutral floor" : home.name + " +" + S.model.hca.toFixed(1) + " home court"}` }),
+      el("div", { class: "wp", role: "img", "aria-label": `Win chance: ${A.name} ${fpct0(winOf(A))}, ${B.name} ${fpct0(winOf(B))}` },
+        el("span", { style: `width:${winOf(A) * 100}%;background:var(--pos)` }), el("span", { style: `width:${winOf(B) * 100}%;background:var(--neg)` })),
+      el("div", { class: "wp-l" }, el("span", { text: `${A.name} ${fpct0(winOf(A))} to win` }), el("span", { text: `${B.name} ${fpct0(winOf(B))}` })));
+    if (lineApplies) {
+      const tiles = [];
+      if (e.spread != null) tiles.push(tile("Spread edge", `${e.spreadSide} ${Math.abs(e.spread).toFixed(1)}`, `Line ${favText(game, e.line)} · model ${fpct0(e.coverProb)} to cover`));
+      if (e.total != null) tiles.push(tile("Total edge", `${e.totalSide} ${Math.abs(e.total).toFixed(1)}`, `Line ${e.tl.toFixed(1)} · model ${fpct0(e.ouProb)}`));
+      if (e.mlEdge != null && e.mlEdge >= 0.005) tiles.push(tile("Moneyline value", `${e.mlSide} +${(e.mlEdge * 100).toFixed(1)}%`, `Market ${fpct0(e.mktH)} ${game.home} · model ${fpct0(p.winH)}`));
+      if (game.spread != null && game.openSpread != null && game.spread !== game.openSpread) {
+        const mv = game.spread - game.openSpread; // negative = moved toward home
+        tiles.push(tile("Line movement", `${mv < 0 ? game.home : game.away} ${Math.abs(mv).toFixed(1)}`, `Opened ${favText(game, game.openSpread)}, now ${favText(game, game.spread)}`));
+      }
+      if (tiles.length) proj.append(el("div", { class: "edges" }, tiles),
+        el("p", { class: "sub", style: "margin:8px 0 0", text: `At −110 a bet needs to win ${(BREAK_EVEN * 100).toFixed(1)}% of the time to break even.` }));
+    } else proj.append(el("p", { class: "sub", text: "No posted line for this matchup and site, so there's no edge to compare." }));
+  }
+
+  /* ATS */
+  const pA = profile(A.name), pB = profile(B.name);
+  const roleOf = t => neutral ? "neutral" : t === home ? "home" : "away";
+  const favTeam = lineApplies && e.line != null ? (e.line < 0 ? home : e.line > 0 ? away : null) : (p ? (p.margin >= 0 ? home : away) : null);
+  const roleSummary = (t, pr) => favTeam == null ? null : t === favTeam ? ["as favorite", pr.fav] : ["as underdog", pr.dog];
+  const atsRows = [
+    ["Overall ATS", pr => atsText(pr.all), pr => pr.all.coverPct],
+    ["Avg vs spread", pr => fs1(pr.all.sd), pr => pr.all.sd],
+    ["At this venue", (pr, t) => `${roleOf(t)}: ${atsText(pr[roleOf(t)])}`, (pr, t) => pr[roleOf(t)].coverPct],
+    ["In this role", (pr, t) => { const r = roleSummary(t, pr); return r ? `${r[0]}: ${atsText(r[1])}` : DASH; }, (pr, t) => roleSummary(t, pr)?.[1].coverPct],
+    ["Last 5 ATS", pr => atsText(pr.l5, false), pr => pr.l5.coverPct],
+    ["Last 10 ATS", pr => atsText(pr.l10, false), pr => pr.l10.coverPct],
+    ["Over-under", pr => hasLines({ c: pr.all.ov, m: pr.all.un, p: pr.all.op }) ? `${pr.all.ouRec}${pr.all.overPct != null ? " (" + fpct0(pr.all.overPct) + " over)" : ""}` : DASH, null],
+    ["Last 5 form", pr => pr.f5.rec !== "0-0" ? `${pr.f5.rec}, ${fs1(pr.f5.margin)} per game` : DASH, pr => pr.f5.margin],
+    ["Schedule strength", pr => pr.sos == null ? DASH : `${fs1(pr.sos)} avg opp rating`, pr => pr.sos],
+  ];
+  const ats = el("div", { class: "cmp" }, el("div", { class: "a hd" }, teamLink(A.name)), el("div", { class: "lab hd", text: "" }), el("div", { class: "hd" }, teamLink(B.name)));
+  for (const [label, show, score] of atsRows) {
+    const sa = score ? score(pA, A) : null, sb = score ? score(pB, B) : null;
+    const better = sa != null && sb != null && sa !== sb ? (sa > sb ? "a" : "b") : null;
+    ats.append(el("div", { class: "a" + (better === "a" ? " better-ats" : ""), text: show(pA, A) }), el("div", { class: "lab", text: label }), el("div", { class: better === "b" ? "better-ats" : "", text: show(pB, B) }));
+  }
+  if (game && !game.final) {
+    const ra = restDays(A.name, game.date), rb = restDays(B.name, game.date);
+    ats.append(el("div", { class: "a", text: ra == null ? DASH : plural(ra, "day") }), el("div", { class: "lab", text: "Rest before game" }), el("div", { text: rb == null ? DASH : plural(rb, "day") }));
+  }
+  const atsPanel = el("section", { class: "panel" }, el("h3", { text: "Covering the spread" }),
+    el("p", { class: "sub", text: "Green = the better number of the two. “In this role” is the team's ATS record as a favorite or underdog, matching its role in this game (from the line, or the projection if there's no line)." }), ats);
+  root.append(el("div", { class: "grid2" }, proj, atsPanel));
+
+  /* where the edge comes from */
+  const fm = el("div", { class: "fm" });
+  const fmRow = (label, off, offK, def, defK) => {
+    const po = percentile(offK, off[offK]), pd = percentile(defK, def[defK]);
+    const edgeTeam = po != null && pd != null && Math.abs(po - pd) >= 0.1 ? (po > pd ? off.name : def.name) : null;
+    fm.append(el("div", { class: "a" }, `${f1(off[offK])} `, el("span", { class: "note", text: po == null ? "" : `${Math.round(po * 100)}th` })),
+      el("div", { class: "lab" }, label, edgeTeam ? el("div", { class: "note", text: `edge: ${edgeTeam}` }) : null),
+      el("div", null, `${f1(def[defK])} `, el("span", { class: "note", text: pd == null ? "" : `${Math.round(pd * 100)}th` })));
+  };
+  for (const [off, def] of [[A, B], [B, A]]) {
+    fm.append(el("div", { class: "hd", text: `${off.name} offense vs ${def.name} defense` }));
+    fmRow("Adj offense vs adj defense", off, "adjO", def, "adjD");
+    fmRow("Shooting (eFG% vs opp eFG%)", off, "efg", def, "oefg");
+    fmRow("Turnovers (TO% vs forced)", off, "to", def, "oto");
+    fmRow("Off. rebounding (ORB% vs allowed)", off, "orb", def, "oorb");
+  }
+  const factors = el("section", { class: "panel" }, el("h3", { text: "Where the edge comes from" }),
+    el("p", { class: "sub", text: "Each row pits one side's offense against the other's defense. The small number is the national percentile (higher is always better); an edge is called when the gap is 10 points or more." }), fm);
+
+  /* side by side + meetings */
+  const rowsDef = [
+    ["Record", t => t.rec, null], ["Conf record", t => t.confRec, null],
+    ["Adj Net", t => t.adjNet, "adjNet"], ["Adj Offense", t => t.adjO, "adjO"], ["Adj Defense", t => t.adjD, "adjD"],
+    ["SRS", t => t.srs, "srs"], ["Pace", t => t.pace, "pace"],
+  ];
+  const cmp = el("div", { class: "cmp" }, el("div", { class: "a hd" }, teamLink(A.name)), el("div", { class: "lab hd", text: "" }), el("div", { class: "hd" }, teamLink(B.name)));
+  for (const [label, get, k] of rowsDef) {
+    const va = get(A), vb = get(B);
+    let better = null;
+    if (k && va != null && vb != null && va !== vb && k !== "pace") better = (va > vb) === PCT_BY[k].hi ? "a" : "b";
+    const fmt = v => v == null ? DASH : typeof v === "string" ? v : (k === "adjNet" || k === "srs") ? fs1(v) : f1(v);
+    const rk = v => (k && PCT_BY[k] && v != null) ? ` (${ordinal(rankOf(k, v))})` : "";
+    cmp.append(el("div", { class: "a" + (better === "a" ? " better" : "") }, fmt(va), el("span", { class: "muted", text: rk(va) })),
+      el("div", { class: "lab", text: label }), el("div", { class: better === "b" ? "better" : "" }, fmt(vb), el("span", { class: "muted", text: rk(vb) })));
+  }
+  const meetings = (S.byTeam.get(A.name) || []).filter(r => r.opp === B.name);
+  const meet = el("div", { class: "kv", style: "margin-top:14px" },
+    meetings.length ? meetings.map(r => el("div", null, el("span", { text: `${dateLabel(r.date)} · ${A.name} ${r.site === "Away" ? "@" : r.site === "Neutral" ? "vs (N)" : "vs"} ${B.name}` }),
+      el("span", { text: r.result ? `${r.result} ${r.score}${r.spread != null ? `, ${A.name} ${fspread(r.spread)} (${r.ats})` : ""}` : `${fmtTime(r.min)}${r.spread != null ? `, ${A.name} ${fspread(r.spread)}` : ""}` }))) :
+      el("div", null, el("span", { text: "Meetings this season" }), el("span", { text: "None on the schedule" })));
+  root.append(el("div", { class: "grid2" }, factors,
+    el("section", { class: "panel" }, el("h3", { text: "Ratings" }), el("p", { class: "sub", text: "Bold blue = the better number. National rank in parentheses (pace isn't judged)." }), cmp, meet)));
+  const ms = S.mRosterSort || (S.mRosterSort = { key: "ht", dir: -1 });
+  const onSortM = k => { S.mRosterSort = ms.key === k ? { key: k, dir: -ms.dir } : { key: k, dir: k === "ht" ? -1 : 1 }; render(); };
+  root.append(el("section", { class: "panel" }, el("h3", { text: "Rosters" }),
+    el("div", { class: "rosters" }, [A, B].map(t => el("div", null,
+      el("div", { style: "font-weight:600;margin-bottom:2px" }, teamLink(t.name)),
+      el("p", { class: "sub", style: "margin:0 0 6px", text: rosterSummary(t.name) }),
+      rosterTable(t.name, ms, onSortM))))));
+}
+
+/* ---- Rankings */
+function viewRankings(root) {
+  const R = S.rank;
+  let rows = S.teams;
+  if (R.conf) rows = rows.filter(t => t.conf === R.conf);
+  if (R.q) { const q = R.q.toLowerCase(); rows = rows.filter(t => t.name.toLowerCase().includes(q)); }
+  const scatterPanel = el("section", { class: "panel" }, el("h3", { text: "Offense vs defense" }),
+    el("p", { class: "sub", text: `Every team by adjusted offense (right = better) and adjusted defense (up = better). ${R.conf ? R.conf + " teams are highlighted." : "Pick a conference to highlight it."} Hover for numbers, click to open a team.` }));
+  const box = el("div", { class: "chart" });
+  scatterPanel.append(box);
+  const controls = el("div", { class: "controls" },
+    el("input", { type: "search", id: "rq", placeholder: "Filter teams…", "aria-label": "Filter teams", value: R.q, oninput: e => { R.q = e.target.value; clearTimeout(viewRankings.t); viewRankings.t = setTimeout(() => { render(); const i = $("#rq"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 200); } }),
+    el("label", { for: "rconf" }, "Conference", confSelect("rconf", R.conf, v => { R.conf = v; render(); })),
+    el("span", { class: "muted", text: plural(rows.length, "team") }));
+  const table = sortTable({
+    cols: [
+      { key: "netRk", label: "Rk", r: true, get: t => t.netRk },
+      { key: "name", label: "Team", get: t => t.name, cell: t => teamLink(t.name) },
+      { key: "conf", label: "Conf", get: t => t.conf },
+      { key: "winPct", label: "Record", get: t => t.winPct, fmt: (v, t) => t.rec || DASH },
+      { key: "confPct", label: "Conf", get: t => t.confPct, fmt: (v, t) => t.confRec || DASH },
+      { key: "adjNet", label: "Adj Net", r: true, get: t => t.adjNet, fmt: fs1 },
+      { key: "adjO", label: "Adj O", r: true, get: t => t.adjO, fmt: f1 },
+      { key: "oRk", label: "O Rk", r: true, get: t => t.oRk },
+      { key: "adjD", label: "Adj D", r: true, get: t => t.adjD, fmt: f1 },
+      { key: "dRk", label: "D Rk", r: true, get: t => t.dRk },
+      { key: "srs", label: "SRS", r: true, get: t => t.srs, fmt: fs1 },
+      { key: "pace", label: "Pace", r: true, get: t => t.pace, fmt: f1 },
+      { key: "efg", label: "eFG%", r: true, get: t => t.efg, fmt: f1 },
+      { key: "oefg", label: "Opp eFG%", r: true, get: t => t.oefg, fmt: f1 },
+      { key: "to", label: "TO%", r: true, get: t => t.to, fmt: f1 },
+      { key: "orb", label: "ORB%", r: true, get: t => t.orb, fmt: f1 },
+      { key: "cover", label: "ATS", r: true, get: t => t.atsAll.coverPct, fmt: (v, t) => t.atsAll.c + t.atsAll.m ? `${t.atsAll.atsRec}` : DASH, title: "Against-the-spread record (sorts by cover %)" },
+    ],
+    rows, sort: { key: R.sort, dir: R.dir },
+    onSort: k => toggleSort(R, k, ["netRk", "oRk", "dRk", "name", "conf", "adjD", "to", "oefg"].includes(k) ? 1 : -1),
+    onRow: t => goTeam(t.name),
+  });
+  root.append(scatterPanel, el("section", { class: "panel" }, el("h3", { text: "All teams" }), controls, table));
+  requestAnimationFrame(() => scatter(box, R.conf));
+}
+function scatter(box, conf) {
+  const pts = S.teams.filter(t => t.adjO != null && t.adjD != null);
+  if (!pts.length) { box.replaceChildren(el("p", { class: "muted", text: "No adjusted ratings in this workbook yet." })); return; }
+  const W = Math.max(300, box.clientWidth), H = Math.min(460, Math.max(300, W * 0.55)), m = { t: 12, r: 14, b: 38, l: 46 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const xs = pts.map(t => t.adjO), ys = pts.map(t => t.adjD);
+  const nice = (lo, hi) => [Math.floor(lo / 5) * 5, Math.ceil(hi / 5) * 5];
+  const [x0, x1] = nice(Math.min(...xs), Math.max(...xs)), [y0, y1] = nice(Math.min(...ys), Math.max(...ys));
+  const X = v => m.l + (v - x0) / (x1 - x0) * iw, Y = v => m.t + (v - y0) / (y1 - y0) * ih; // low Adj D (good) at top
+  const svg = sv("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Adjusted offense versus adjusted defense" });
+  const grid = sv("g", { class: "grid" });
+  for (let v = x0; v <= x1; v += 5) grid.append(sv("line", { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b }), sv("text", { x: X(v), y: H - m.b + 15, "text-anchor": "middle", text: v }));
+  for (let v = y0; v <= y1; v += 5) grid.append(sv("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v) }), sv("text", { x: m.l - 6, y: Y(v) + 4, "text-anchor": "end", text: v }));
+  const med = a => { const s = [...a].sort((p, q) => p - q); return s[Math.floor(s.length / 2)]; };
+  const mx = med(xs), my = med(ys);
+  svg.append(grid,
+    sv("line", { x1: X(mx), x2: X(mx), y1: m.t, y2: H - m.b, stroke: "var(--muted)", "stroke-dasharray": "3 4", "stroke-width": 1 }),
+    sv("line", { x1: m.l, x2: W - m.r, y1: Y(my), y2: Y(my), stroke: "var(--muted)", "stroke-dasharray": "3 4", "stroke-width": 1 }),
+    sv("text", { x: W - m.r - 4, y: m.t + 12, "text-anchor": "end", text: "Good O · good D" }),
+    sv("text", { x: m.l + 4, y: H - m.b - 6, text: "Weak O · weak D" }),
+    sv("text", { x: m.l + iw / 2, y: H - 4, "text-anchor": "middle", text: "Adjusted offense (pts per 100 poss.) →" }),
+    sv("text", { x: 12, y: m.t + ih / 2, "text-anchor": "middle", transform: `rotate(-90 12 ${m.t + ih / 2})`, text: "Adjusted defense, allowed (better ↑)" }));
+  const hl = t => conf && t.conf === conf;
+  const ordered = [...pts].sort((a, b) => hl(a) - hl(b));
+  for (const t of ordered) {
+    const on = hl(t);
+    svg.append(sv("circle", {
+      cx: X(t.adjO), cy: Y(t.adjD), r: on ? 5.5 : 4, fill: on ? "var(--pos)" : "var(--dot)", stroke: "var(--panel)", "stroke-width": 1.5, style: "cursor:pointer",
+      onmousemove: e => showTip(e, t.name, [`${t.conf || ""} · ${t.rec || ""}`, `Adj O ${f1(t.adjO)} (${t.oRk ? ordinal(t.oRk) : DASH}) · Adj D ${f1(t.adjD)} (${t.dRk ? ordinal(t.dRk) : DASH})`, `Adj Net ${fs1(t.adjNet)}${t.netRk ? " · #" + t.netRk : ""}`]),
+      onmouseleave: hideTip, onclick: () => { hideTip(); goTeam(t.name); },
+    }));
+  }
+  const labelSet = (conf ? pts.filter(hl) : pts).sort((a, b) => (b.adjNet ?? -99) - (a.adjNet ?? -99)).slice(0, conf ? 4 : 5);
+  for (const t of labelSet) {
+    const x = X(t.adjO), right = x > W - 130;
+    svg.append(sv("text", { x: right ? x - 8 : x + 8, y: Y(t.adjD) + 4, "text-anchor": right ? "end" : "start", style: "fill:var(--ink);font-weight:600", text: t.name }));
+  }
+  box.replaceChildren(svg);
+}
+
+/* ---- Conferences */
+function confStats() {
+  return S.confs.map(c => {
+    const ts = S.teams.filter(t => t.conf === c);
+    const nets = ts.map(t => t.adjNet).filter(v => v != null);
+    const top = [...ts].sort((a, b) => (b.adjNet ?? -99) - (a.adjNet ?? -99))[0];
+    return { conf: c, n: ts.length, avgNet: nets.length ? nets.reduce((a, b) => a + b, 0) / nets.length : null, top: top?.name, topNet: top?.adjNet };
+  }).sort((a, b) => (b.avgNet ?? -99) - (a.avgNet ?? -99));
+}
+function viewConferences(root) {
+  const stats = confStats();
+  if (!S.conf) S.conf = stats[0]?.conf || null;
+  const chartPanel = el("section", { class: "panel" }, el("h3", { text: "Conference strength" }),
+    el("p", { class: "sub", text: "Average adjusted net rating of each conference's teams. Click a bar to open its standings." }));
+  const box = el("div", { class: "chart" });
+  chartPanel.append(box);
+  const ts = S.teams.filter(t => t.conf === S.conf)
+    .sort((a, b) => (b.confPct ?? 0) - (a.confPct ?? 0) || (b.confW ?? 0) - (a.confW ?? 0) || (b.winPct ?? 0) - (a.winPct ?? 0) || (b.adjNet ?? -99) - (a.adjNet ?? -99));
+  const st = el("section", { class: "panel" }, el("h3", { text: `${S.conf || ""} standings` }),
+    el("div", { class: "controls" }, el("label", { for: "cconf" }, "Conference",
+      el("select", { id: "cconf", onchange: e => { S.conf = e.target.value; render(); } }, S.confs.map(c => el("option", { value: c, text: c, selected: c === S.conf }))))),
+    sortTable({
+      cols: [
+        { key: "i", label: "#", r: true, get: t => ts.indexOf(t) + 1, noSort: true },
+        { key: "name", label: "Team", get: t => t.name, cell: t => teamLink(t.name), noSort: true },
+        { key: "confRec", label: "Conf", get: t => t.confRec, noSort: true },
+        { key: "rec", label: "Overall", get: t => t.rec, noSort: true },
+        { key: "adjNet", label: "Adj Net", r: true, get: t => t.adjNet, fmt: (v, t) => `${fs1(v)}${t.netRk ? " (#" + t.netRk + ")" : ""}`, noSort: true },
+        { key: "adjO", label: "Adj O", r: true, get: t => t.adjO, fmt: f1, noSort: true },
+        { key: "adjD", label: "Adj D", r: true, get: t => t.adjD, fmt: f1, noSort: true },
+        { key: "homeRec", label: "Home", get: t => t.homeRec, noSort: true },
+        { key: "awayRec", label: "Away", get: t => t.awayRec, noSort: true },
+        { key: "best", label: "Best win", get: t => t.best, noSort: true },
+        { key: "worst", label: "Worst loss", get: t => t.worst, noSort: true },
+      ],
+      rows: ts, sort: { key: "i", dir: 1 }, onSort: () => {}, onRow: t => goTeam(t.name),
+    }));
+  root.append(chartPanel, st);
+  requestAnimationFrame(() => confBars(box, stats));
+}
+function confBars(box, stats) {
+  const W = Math.max(300, box.clientWidth), rowH = 22, m = { t: 6, r: 52, b: 22, l: 70 };
+  const H = m.t + m.b + rowH * stats.length, iw = W - m.l - m.r;
+  const vals = stats.map(s => s.avgNet ?? 0);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  const pad = (hi - lo) * 0.05 || 1;
+  const X = v => m.l + (v - (lo - (lo < 0 ? pad : 0))) / ((hi + pad) - (lo - (lo < 0 ? pad : 0))) * iw;
+  const svg = sv("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Average adjusted net rating by conference" });
+  const step = (hi - lo) > 30 ? 10 : 5, grid = sv("g", { class: "grid" });
+  for (let v = Math.ceil(lo / step) * step; v <= hi + pad; v += step) grid.append(sv("line", { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b }), sv("text", { x: X(v), y: H - 6, "text-anchor": "middle", text: v > 0 ? "+" + v : v }));
+  svg.append(grid, sv("line", { class: "zero", x1: X(0), x2: X(0), y1: m.t, y2: H - m.b }));
+  stats.forEach((s, i) => {
+    const yy = m.t + i * rowH, v = s.avgNet ?? 0, on = s.conf === S.conf;
+    const g = sv("g", { style: "cursor:pointer", onclick: () => { hideTip(); S.conf = s.conf; render(); },
+      onmousemove: e => showTip(e, s.conf, [`${s.n} teams · avg Adj Net ${fs1(s.avgNet)}`, s.top ? `Best: ${s.top} (${fs1(s.topNet)})` : null]), onmouseleave: hideTip });
+    g.append(sv("rect", { x: 0, y: yy, width: W, height: rowH, fill: "transparent" }),
+      sv("text", { x: m.l - 8, y: yy + rowH / 2 + 4, "text-anchor": "end", style: on ? "fill:var(--ink);font-weight:600" : null, text: s.conf }),
+      sv("rect", { x: Math.min(X(0), X(v)), y: yy + 4, width: Math.max(1, Math.abs(X(v) - X(0))), height: rowH - 8, rx: 3, fill: on ? "var(--pos)" : "var(--dot)" }),
+      sv("text", { x: v >= 0 ? X(v) + 6 : X(0) + 6, y: yy + rowH / 2 + 4, style: "fill:var(--ink)", text: fs1(s.avgNet) }));
+    svg.append(g);
+  });
+  box.replaceChildren(svg);
+}
+
+/* ---- ATS & totals */
+function viewAts(root) {
+  const A = S.ats;
+  const rows = S.teams.filter(t => !A.conf || t.conf === A.conf).map(t => {
+    const list = (S.byTeam.get(t.name) || []).filter(r => A.site === "Overall" || r.site === A.site);
+    return { t, ...atsSummary(list) };
+  }).filter(r => r.c + r.m + r.p >= A.min);
+  const controls = el("div", { class: "controls" },
+    seg(["Overall", "Home", "Away", "Neutral"], A.site, v => { A.site = v; render(); }, "Site"),
+    el("label", { for: "aconf" }, "Conference", confSelect("aconf", A.conf, v => { A.conf = v; render(); })),
+    el("label", { for: "amin" }, "Min. games with a line", el("input", { type: "number", id: "amin", min: "0", max: "40", value: A.min, style: "width:64px", onchange: e => { A.min = Math.max(0, +e.target.value || 0); render(); } })),
+    el("span", { class: "muted", text: plural(rows.length, "team") }));
+  root.append(el("section", { class: "panel" }, el("h2", { text: "Against the spread & totals" }),
+    el("p", { class: "sub", text: "Built from the Games tab. vs Spread = average of margin + spread (+ = beat the line by that much). O/U Diff follows your workbook: line minus game total, so + means games went under." }),
+    controls,
+    sortTable({
+      cols: [
+        { key: "name", label: "Team", get: r => r.t.name, cell: r => teamLink(r.t.name) },
+        { key: "conf", label: "Conf", get: r => r.t.conf },
+        { key: "g", label: "Games", r: true, get: r => r.g },
+        { key: "c", label: "ATS", r: true, get: r => r.c, fmt: (v, r) => r.atsRec },
+        { key: "coverPct", label: "Cover %", r: true, get: r => r.coverPct, fmt: fpct0 },
+        { key: "sd", label: "vs Spread", r: true, get: r => r.sd, fmt: fs1 },
+        { key: "ov", label: "Over-Under", r: true, get: r => r.ov, fmt: (v, r) => r.ouRec },
+        { key: "overPct", label: "Over %", r: true, get: r => r.overPct, fmt: fpct0 },
+        { key: "od", label: "O/U Diff", r: true, get: r => r.od, fmt: fs1 },
+      ],
+      rows, sort: { key: A.sort, dir: A.dir }, onSort: k => toggleSort(A, k, ["name", "conf"].includes(k) ? 1 : -1), onRow: r => goTeam(r.t.name),
+    })));
+}
+
+/* ---------------------------------------------------------------- shell */
+function fileInfo() {
+  const box = $("#fileinfo");
+  if (!S.loaded) { box.textContent = "No workbook loaded yet."; return; }
+  const when = S.file?.lastModified ? new Date(S.file.lastModified) : null;
+  const whenKey = when ? new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(when) : null;
+  box.replaceChildren(el("b", { text: S.file?.name || "Workbook" }),
+    when ? ` · updated ${when.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}` : "",
+    ` · ${plural(S.teams.length, "team")} · ${plural(S.games.size, "game")}`,
+    ...(whenKey && whenKey < todayET() ? [el("span", { class: "stale", text: "Not today's file" })] : []));
+  runInfoBar(box);
+}
+/* Cloud version: when the site last updated, API calls this month, and a link to run it now. */
+const RUN = (() => { try { const e = document.getElementById("run-info"); return e ? JSON.parse(e.textContent) : null; } catch (e) { return null; } })();
+function runInfoBar(box) {
+  if (!RUN) return;
+  const when = RUN.finished ? new Date(RUN.finished) : null;
+  const ago = when ? Math.round((Date.now() - when) / 36e5) : null;
+  const bits = [];
+  if (when) bits.push(`site updated ${when.toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" })} ET`);
+  if (RUN.mode === "rebuild") bits.push("rebuilt from saved data (no new API pull)");
+  if (RUN.api_month != null) bits.push(`API calls this month: ${RUN.api_month.toLocaleString()} / ${(RUN.api_limit || 1000).toLocaleString()}`);
+  if (RUN.problem) bits.push("⚠ " + RUN.problem);
+  box.append(el("div", { class: "runinfo" }, bits.join(" · "),
+    RUN.run_url ? el("a", { href: RUN.run_url, target: "_blank", rel: "noopener", text: "Run now ↗" }) : null,
+    RUN.log_url ? el("a", { href: RUN.log_url, target: "_blank", rel: "noopener", text: "Last run's log ↗" }) : null,
+    el("a", { href: "college_basketball_by_conference.xlsx", download: "", text: "Download workbook" })));
+  if (ago != null && ago > 30) box.append(el("span", { class: "stale", text: `Last update was ${ago} hours ago` }));
+}
+function currentView() { const h = location.hash.slice(1); return VIEWS[h] ? h : (S.modelInfo ? "picks" : "games"); }
+let lastErr = null;
+function render() {
+  hideTip();
+  const view = currentView();
+  for (const a of document.querySelectorAll("#tabs a")) {
+    if (a.dataset.view === view) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  const main = $("#main"), y = scrollY;
+  main.replaceChildren();
+  fileInfo();
+  if (!S.loaded) { viewEmpty(main, lastErr); return; }
+  try { VIEWS[view](main); } catch (e) { console.error(e); main.append(el("p", { class: "error", text: "Something in this view broke: " + e.message })); }
+  if (render.keepScroll) scrollTo(0, y);
+}
+window.addEventListener("hashchange", () => { render.keepScroll = false; render(); scrollTo(0, 0); });
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { render.keepScroll = true; render(); }, 150); });
+
+/* remember the last workbook in this browser (convenience only) */
+const store = {
+  open() { return new Promise((res, rej) => { try { const r = indexedDB.open("cbb-hype", 1); r.onupgradeneeded = () => r.result.createObjectStore("f"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); },
+  async put(v, key = "last") { try { const db = await this.open(); await new Promise((res, rej) => { const t = db.transaction("f", "readwrite"); t.objectStore("f").put(v, key); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch (e) { /* storage unavailable */ } },
+  async get(key = "last") { try { const db = await this.open(); return await new Promise(res => { const q = db.transaction("f").objectStore("f").get(key); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; } },
+};
+
+async function handleFile(file) {
+  if (!file) return;
+  try {
+    const buf = await file.arrayBuffer();
+    const meta = { name: file.name, lastModified: file.lastModified };
+    const kind = loadWorkbook(buf, meta);
+    lastErr = null;
+    if (kind !== "roster") store.put({ buf, meta });
+  } catch (e) { console.error(e); lastErr = e.message || String(e); if (S.loaded) alertBar(lastErr); }
+  render.keepScroll = false; render();
+}
+function alertBar(msg) { const m = $("#main"); m.prepend(el("p", { class: "error", text: msg })); }
+render.keepScroll = true;
+
+$("#loadBtn").addEventListener("click", () => $("#fileInput").click());
+$("#fileInput").addEventListener("change", e => { for (const f of e.target.files) handleFile(f); e.target.value = ""; });
+let dragDepth = 0;
+window.addEventListener("dragenter", e => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { dragDepth++; $("#overlay").classList.add("on"); } });
+window.addEventListener("dragleave", () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) $("#overlay").classList.remove("on"); });
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", e => { e.preventDefault(); dragDepth = 0; $("#overlay").classList.remove("on"); for (const f of e.dataTransfer?.files || []) handleFile(f); });
+
+(async () => {
+  if (typeof XLSX === "undefined") { lastErr = "The spreadsheet reader didn't load. Check your internet connection and reload the page."; render(); return; }
+  const rosterEl = document.getElementById("roster-data");
+  if (rosterEl && rosterEl.textContent.trim()) {
+    try { const d = JSON.parse(rosterEl.textContent); setRoster(d.players || [], { name: "rosters", lastModified: d.modified }); } catch (e) { console.error(e); }
+  } else {
+    const savedRoster = await store.get("roster");
+    if (savedRoster?.buf) { try { const wb = XLSX.read(savedRoster.buf, { type: "array" }); setRoster(rosterFromWorkbook(wb) || [], savedRoster.meta); } catch (e) { /* ignore */ } }
+  }
+  const embedded = document.getElementById("workbook-data");
+  if (embedded && embedded.textContent.trim()) {
+    try {
+      const bin = atob(embedded.textContent.trim()), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      loadWorkbook(bytes.buffer, { name: embedded.dataset.name || "Workbook", lastModified: Number(embedded.dataset.modified) || null });
+      render(); return;
+    } catch (e) { console.error(e); lastErr = "The workbook built into this page couldn't be read: " + e.message; }
+  }
+  const saved = await store.get();
+  if (saved?.buf) { try { loadWorkbook(saved.buf, saved.meta); } catch (e) { lastErr = null; } }
+  render();
+})();
+</script>
+<script id="methods-view">
+/* ================================================================ Picks tab: pick methods + day record sidebar */
+/* CBB Hype - Picks tab with selectable pick methods.
+   Day record sidebar: beside the games list, a sticky panel shows the chosen date's record
+   (selected method, spreads/totals/tiers, last 7 days, every method, the original engine).
+   Built into cbb_hype.html (no separate methods_view.js needed). It replaces the Picks
+   view with one that reads the Method Picks / Method Weights / Method Factors tabs that
+   methods_engine.py writes, and keeps the original pick-engine view at the bottom. */
+(function () {
+  "use strict";
+  if (typeof VIEWS === "undefined" || typeof S === "undefined") return;
+  if (window.__cbbMethodsView) return;   // already on the page
+  window.__cbbMethodsView = true;
+
+  const METHODS = ["Model", "Model + Trends", "Trends", "Torvik", "Consensus"];
+  const ABOUT = {
+    "Model": "Team ratings vs the line. Confidence = how often the model's past disagreements with the line actually came true.",
+    "Model + Trends": "The model, nudged up or down by trend factors (underdog size, home court, line movement; for totals: high/low totals and total movement).",
+    "Trends": "Trend factors alone, no team ratings. Each factor's weight is learned from earlier games and pulled toward 50% until it proves itself.",
+    "Torvik": "Torvik's projected score vs the line. Needs torvik_pull.py to run before the methods engine.",
+    "Consensus": "A pick only when 2+ of Model, Trends and Torvik lean the same way at 52%+ and none leans the other way. Model + Trends doesn't vote because it overlaps the others.",
+  };
+  const LEAN = 0.545, STRONG = 0.57, PAYOUT = 100 / 110, PP = 25, AGREE = 0.52;
+  const FACT = {
+    Spread: [["dog_small", "Underdog of 0.5–3.5"], ["dog_mid", "Underdog of 4–9.5"], ["dog_big", "Underdog of 10+"],
+             ["home", "Home team (not neutral)"], ["move", "Line moved toward this side (per 3 pts)"]],
+    Total: [["lean", "Every game (overall lean; + = overs)"], ["high", "Total of 150+ (+ = overs)"], ["low", "Total under 135 (+ = overs)"],
+            ["tmove", "Total moved this way (per 3 pts)"]],
+  };
+
+  /* ---- tiny helpers (own copies so this file stands alone) */
+  function h(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    if (props) for (const [k, v] of Object.entries(props)) {
+      if (v == null || v === false) continue;
+      if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v);
+    }
+    for (const k of kids.flat(Infinity)) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k));
+    return e;
+  }
+  const n = v => { if (v == null || v === "") return null; const x = typeof v === "number" ? v : Number(v); return Number.isFinite(x) ? x : null; };
+  const s = v => (v == null || v === "") ? null : String(v).trim();
+  const pct = v => v == null ? "—" : (v * 100).toFixed(1) + "%";
+  const sgn = v => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1);
+  const sig = z => 1 / (1 + Math.exp(-z));
+  const tierOf = c => c >= STRONG ? "Strong" : c >= LEAN ? "Lean" : "";
+  const dkey = v => {
+    if (v == null || v === "") return null;
+    if (typeof v === "number") return new Date(Math.round((Math.floor(v) - 25569) * 864e5)).toISOString().slice(0, 10);
+    const m = String(v).match(/\d{4}-\d{2}-\d{2}/); return m ? m[0] : null;
+  };
+  const mins = v => typeof v === "number" ? Math.round((v % 1) * 1440) : (typeof minutesOf === "function" ? minutesOf(v) : null);
+  const tfmt = m => typeof fmtTime === "function" ? fmtTime(m) : (m == null ? "TBD" : `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`);
+  const today = () => typeof todayET === "function" ? todayET() : new Date().toISOString().slice(0, 10);
+  const shift = (d, k) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + k); return x.toISOString().slice(0, 10); };
+  const dlabel = d => typeof dateLabel === "function" ? dateLabel(d, true) : d;
+  const pill = (t, k) => h("span", { class: "pill " + k, text: t });
+  const resPill = r => r === "W" ? pill("W", "good") : r === "L" ? pill("L", "bad") : r === "P" ? pill("Push", "even") : h("span", { class: "muted", text: r || "" });
+
+  /* ---- state */
+  const M = S.methods = S.methods || { rows: [], factors: [], weights: [], mode: "learned", loaded: false };
+  const UI = S.mv = S.mv || { method: "Model + Trends", type: "Spread", date: null, onlyPicks: false };
+  const LS = "cbb-trend-settings";
+  function loadManual() { try { return JSON.parse(localStorage.getItem(LS) || "null"); } catch (e) { return null; } }
+  function saveManual() { try { localStorage.setItem(LS, JSON.stringify(M.manual)); } catch (e) { /* not saved */ } }
+  M.manual = M.manual || loadManual() || { mode: "learned", spread: {}, total: {} };
+
+  /* ---- reading the workbook tabs */
+  function rowsOf(wb, name) {
+    const ws = wb.Sheets[name]; if (!ws) return [];
+    return XLSX.utils.sheet_to_json(ws, { raw: true, defval: null });
+  }
+  function parse(wb) {
+    M.rows = rowsOf(wb, "Method Picks").map(r => ({
+      date: dkey(r["Date"]), min: mins(r["Time (ET)"]), id: s(r["GameID"]), away: s(r["Away"]), home: s(r["Home"]),
+      neutral: s(r["Neutral"]) === "Yes", type: s(r["Type"]), method: s(r["Method"]), pick: s(r["Pick"]), side: s(r["Side"]),
+      line: n(r["Line"]), open: n(r["Open"]), conf: n(r["Confidence"]), tier: s(r["Tier"]) || "", result: s(r["Result"]),
+      units: n(r["Units"]), mval: n(r["Model Value"]), msrc: s(r["Model Source"]), hp: n(r["Home Pts"]), ap: n(r["Away Pts"]),
+    })).filter(r => r.date && r.method);
+    M.factors = rowsOf(wb, "Method Factors").map(r => {
+      const o = { date: dkey(r["Date"]), id: s(r["GameID"]), type: s(r["Kind"]), away: s(r["Away"]), home: s(r["Home"]), line: n(r["Line"]),
+        gap: n(r["Model Gap"]), slope: n(r["Model Slope"]), outcome: n(r["Outcome"]), final: r["Final"] === true || r["Final"] === 1 || s(r["Final"]) === "TRUE", f: {} };
+      for (const [k] of [...FACT.Spread, ...FACT.Total]) if (r["F " + k] != null) o.f[k] = n(r["F " + k]);
+      return o;
+    });
+    M.weights = rowsOf(wb, "Method Weights");
+    M.mode = s(M.weights[0]?.["Mode"]) || "learned";
+    M.loaded = M.rows.length > 0;
+    M.dates = [...new Set(M.rows.map(r => r.date))].sort();
+  }
+  function parseBuffer(buf) {
+    try { parse(XLSX.read(buf, { type: "array", sheets: ["Method Picks", "Method Factors", "Method Weights"] })); }
+    catch (e) { console.error("methods view:", e); }
+  }
+  if (typeof loadWorkbook === "function") {
+    const orig = loadWorkbook;
+    window.loadWorkbook = function (buf, meta) { const out = orig(buf, meta); if (out !== "roster") parseBuffer(buf); return out; };
+  }
+  const embedded = document.getElementById("workbook-data");
+  if (embedded && embedded.textContent.trim()) {
+    const bin = atob(embedded.textContent.trim()), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    parseBuffer(bytes.buffer);
+  }
+
+  /* ---- manual trend weights, applied in the browser */
+  function learnedWeight(type, factor, method) {
+    const w = M.weights.find(r => s(r["Kind"]) === type && s(r["Factor"]) === factor);
+    return w ? n(w[method]) : null;
+  }
+  function manualOn() { return M.manual.mode === "manual"; }
+  function manualW(type) { const k = type === "Spread" ? "spread" : "total"; return FACT[type].map(([f]) => (n(M.manual[k][f]) ?? 0) / PP); }
+
+  /** Method Picks rows with Model + Trends, Trends and Consensus redone under manual weights. */
+  function effectiveRows() {
+    if (!manualOn()) return M.rows;
+    const byKey = new Map();
+    for (const r of M.rows) byKey.set(`${r.id}|${r.type}|${r.method}`, r);
+    const out = M.rows.filter(r => !["Model + Trends", "Trends", "Consensus"].includes(r.method));
+    for (const f of M.factors) {
+      const w = manualW(f.type), fv = FACT[f.type].map(([k]) => f.f[k] ?? 0);
+      const base = byKey.get(`${f.id}|${f.type}|Model`) || byKey.get(`${f.id}|${f.type}|Trends`);
+      if (!base) continue;
+      const dot = fv.reduce((a, v, i) => a + v * w[i], 0);
+      const probs = {};
+      if (f.gap != null && f.slope != null) probs["Model + Trends"] = sig(f.slope * f.gap + dot);
+      probs["Trends"] = sig(dot);
+      const pm = byKey.get(`${f.id}|${f.type}|Model`), pt = byKey.get(`${f.id}|${f.type}|Torvik`);
+      const homeP = r => r ? ((r.side === "home" || r.side === "over") ? r.conf : 1 - r.conf) : null;
+      const c = consensus({ Model: homeP(pm), Trends: probs["Trends"], Torvik: homeP(pt) });
+      if (c != null) probs["Consensus"] = c;
+      for (const [meth, p] of Object.entries(probs)) out.push(makeRow(base, f, meth, p));
+    }
+    return out;
+  }
+  function consensus(probs) {
+    const votes = Object.values(probs).filter(p => p != null).map(p => [p >= 0.5, Math.max(p, 1 - p)]);
+    if (votes.length < 2) return null;
+    const home = votes.filter(([hh, c]) => hh && c >= AGREE).map(v => v[1]), away = votes.filter(([hh, c]) => !hh && c >= AGREE).map(v => v[1]);
+    const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+    if (home.length >= 2 && !away.length) return mean(home);
+    if (away.length >= 2 && !home.length) return 1 - mean(away);
+    const lean = mean(votes.map(([hh, c]) => hh ? c : 1 - c));
+    return Math.min(LEAN - 0.001, Math.max(1 - LEAN + 0.001, lean));
+  }
+  function makeRow(base, f, method, pHome) {
+    const homeSide = pHome >= 0.5, conf = homeSide ? pHome : 1 - pHome, tier = tierOf(conf);
+    let side, pick;
+    if (f.type === "Spread") {
+      side = homeSide ? "home" : "away";
+      const tl = homeSide ? f.line : -f.line;
+      pick = `${homeSide ? f.home : f.away} ${tl === 0 ? "PK" : (tl > 0 ? "+" : "") + tl.toFixed(1)}`;
+    } else { side = homeSide ? "over" : "under"; pick = `${homeSide ? "Over" : "Under"} ${f.line.toFixed(1)}`; }
+    let result = "Pending", units = null;
+    if (f.final && f.outcome != null) {
+      const x = (homeSide ? 1 : -1) * f.outcome;
+      result = f.outcome === 0 ? "P" : x > 0 ? "W" : "L";
+      if (tier) units = result === "W" ? PAYOUT : result === "L" ? -1 : 0;
+    }
+    return { ...base, method, side, pick, conf, tier, result, units, mval: method === "Model + Trends" ? base.mval : null, manual: true };
+  }
+
+  /* ---- records */
+  function record(list) {
+    const g = list.filter(r => r.tier && ["W", "L", "P"].includes(r.result));
+    const w = g.filter(r => r.result === "W").length, l = g.filter(r => r.result === "L").length, p = g.length - w - l;
+    const u = g.reduce((a, r) => a + (r.units ?? 0), 0);
+    return { n: g.length, w, l, p, text: `${w}-${l}${p ? "-" + p : ""}`, pct: w + l ? w / (w + l) : null, units: u };
+  }
+
+  /* ---- the view */
+  const oldPicks = VIEWS.picks;
+  VIEWS.picks = function (root) {
+    if (!M.loaded) {
+      root.append(h("section", { class: "panel" }, h("h2", { text: "Pick methods" }),
+        h("p", { text: "This workbook has no Method Picks tab yet. Run methods_engine.py after the pick engine (and torvik_pull.py), then rebuild the site." })));
+      if (oldPicks) oldPicks(root);
+      return;
+    }
+    const rows = effectiveRows();
+    const t0 = today();
+    if (!UI.date) UI.date = M.dates.includes(t0) ? t0 : (M.dates.filter(d => d <= t0).pop() || M.dates[M.dates.length - 1]);
+    const date = UI.date, all = UI.method === "All methods";
+    const ofType = rows.filter(r => UI.type === "Both" || r.type === UI.type);
+    const day = ofType.filter(r => r.date === date);
+
+    /* controls */
+    const setDate = d => { UI.date = d; render(); };
+    const sel = h("select", { "aria-label": "Pick method", onchange: e => { UI.method = e.target.value; render(); } },
+      [...METHODS, "All methods"].map(m => h("option", { value: m, text: m === "All methods" ? "All methods side by side" : m, selected: m === UI.method })));
+    const types = h("div", { class: "seg", role: "group", "aria-label": "Bet type" },
+      ["Spread", "Total", "Both"].map(t => h("button", { type: "button", "aria-pressed": String(UI.type === t), text: t === "Spread" ? "Spreads" : t === "Total" ? "Totals" : "Both", onclick: () => { UI.type = t; render(); } })));
+    const head = h("section", { class: "panel" },
+      h("h2", { text: `Picks · ${dlabel(date)}` }),
+      h("p", { class: "sub", text: all ? "Every method's call on each game. Bold = cleared the pick bar." : ABOUT[UI.method] }),
+      h("div", { class: "controls" },
+        h("label", null, "Method", sel), types,
+        h("button", { class: "btn", type: "button", text: "‹ Prev", "aria-label": "Previous day", onclick: () => setDate(shift(date, -1)) }),
+        h("input", { type: "date", value: date, "aria-label": "Date", onchange: e => e.target.value && setDate(e.target.value) }),
+        h("button", { class: "btn", type: "button", text: "Next ›", "aria-label": "Next day", onclick: () => setDate(shift(date, 1)) }),
+        h("button", { class: "btn", type: "button", text: "Today", onclick: () => setDate(t0) }),
+        all ? null : h("label", null, h("input", { type: "checkbox", checked: UI.onlyPicks || null, onchange: e => { UI.onlyPicks = e.target.checked; render(); } }), "Picks only")),
+      h("p", { class: "sub", text: `Pick bar: ${pct(LEAN)} (Lean), ${pct(STRONG)} (Strong); 52.4% breaks even at −110. Graded at the closing line. Each day uses only games played before it.` +
+        (manualOn() ? " Model + Trends, Trends and Consensus are using YOUR manual trend weights." : "") }));
+    root.append(head);
+
+    /* records */
+    const methodsShown = all ? METHODS : [UI.method];
+    const recRows = METHODS.map(m => {
+      const mine = ofType.filter(r => r.method === m);
+      return { m, season: record(mine), dayR: record(mine.filter(r => r.date === date)), thru: record(mine.filter(r => r.date <= date)) };
+    });
+    const recTable = h("div", { class: "tablewrap" }, h("table", null,
+      h("thead", null, h("tr", null, ["Method", "Season", "Win %", "Units", "Through this date", "This date"].map((c, i) => h("th", { class: i && i !== 1 && i !== 4 && i !== 5 ? "r" : "", text: c })))),
+      h("tbody", null, recRows.map(r => h("tr", { class: "click", style: r.m === UI.method ? "font-weight:600" : null, onclick: () => { UI.method = r.m; render(); } },
+        h("td", { text: r.m }), h("td", { text: r.season.n ? r.season.text : "—" }), h("td", { class: "r", text: pct(r.season.pct) }),
+        h("td", { class: "r", text: r.season.n ? sgn(r.season.units) : "—" }), h("td", { text: r.thru.n ? `${r.thru.text} (${sgn(r.thru.units)})` : "—" }),
+        h("td", { text: r.dayR.n ? `${r.dayR.text} (${sgn(r.dayR.units)})` : "—" }))))));
+    root.append(h("section", { class: "panel" }, h("h3", { text: `Records · ${UI.type === "Both" ? "spreads and totals" : UI.type === "Spread" ? "spreads" : "totals"}` }),
+      h("p", { class: "sub", text: "Only picks that cleared the bar count. Click a method to switch to it. Under ~200 picks, a record is mostly luck; compare methods over weeks, not days." }), recTable));
+
+    /* games for the date, with the day's record in a sidebar beside them */
+    const games = h("section", { class: "panel" }, h("h3", { text: "Games" }));
+    root.append(h("div", { class: "mv-layout" }, games, daySidebar(rows, date, setDate)));
+    if (!day.length) {
+      const near = M.dates.find(d => d > date) || M.dates.filter(d => d < date).pop();
+      games.append(h("p", { class: "muted" }, "No games with lines for this method on this day. ",
+        near ? h("button", { class: "linkish", type: "button", text: `Jump to ${dlabel(near)}`, onclick: () => setDate(near) }) : null));
+    } else if (all) games.append(compareTable(day));
+    else {
+      let list = day.filter(r => r.method === UI.method);
+      if (UI.onlyPicks) list = list.filter(r => r.tier);
+      list.sort((a, b) => (b.tier ? 1 : 0) - (a.tier ? 1 : 0) || (b.conf ?? 0) - (a.conf ?? 0));
+      if (!list.length) games.append(h("p", { class: "muted", text: UI.onlyPicks ? "Nothing cleared the bar for this method today." : "This method has no numbers for this day (it may need more finished games, or Torvik isn't connected)." }));
+      else games.append(singleTable(list));
+    }
+
+    root.append(trendPanel());
+    if (oldPicks) {
+      const box = h("div");
+      const det = h("details", { class: "settings", open: UI.oldOpen || null, ontoggle: e => { UI.oldOpen = e.target.open; if (UI.oldOpen && !box.childNodes.length) { const y = scrollY; oldPicks(box); scrollTo(0, y); } } }, h("summary", { text: "Original pick engine view (Picks, Pick Log, Model tabs)" }), box);
+      root.append(h("section", { class: "panel" }, det));
+      if (UI.oldOpen) oldPicks(box);
+    }
+  };
+
+  /* ---- day sidebar: the record for the selected date, kept in view while you scroll */
+  function daySidebar(rows, date, setDate) {
+    const t0 = today(), all = UI.method === "All methods";
+    const typeOk = r => UI.type === "Both" || r.type === UI.type;
+    const typeWord = UI.type === "Both" ? "spreads + totals" : UI.type === "Spread" ? "spreads" : "totals";
+    const recText = rc => rc.n ? `${rc.text} (${sgn(rc.units)})` : "—";
+    const kind = u => u > 0.001 ? "good" : u < -0.001 ? "bad" : "even";
+    const status = date > t0 ? "Upcoming" : date === t0 ? "Today" : "Final";
+    const side = h("aside", { class: "panel mv-side", "aria-label": "Record for this day" },
+      h("div", { class: "mv-side-top" },
+        h("button", { class: "btn", type: "button", text: "‹", "aria-label": "Previous day", onclick: () => setDate(shift(date, -1)) }),
+        h("div", null, h("h3", { style: "margin:0", text: "Day record" }), h("div", { class: "sub", style: "margin:0", text: `${dlabel(date)} · ${status}` })),
+        h("button", { class: "btn", type: "button", text: "›", "aria-label": "Next day", onclick: () => setDate(shift(date, 1)) })));
+
+    const dayOf = m => rows.filter(r => r.method === m && r.date === date);
+    let pickList = null;   // the day's individual picks go last, so the records stay near the top
+    if (!all) {
+      const m = UI.method, mine = dayOf(m), picks = mine.filter(r => r.tier && typeOk(r));
+      const rc = record(picks), pending = picks.filter(r => !["W", "L", "P"].includes(r.result)).length;
+      side.append(h("div", { class: "mv-head" },
+        h("div", { class: "k", text: `${m} · ${typeWord}` }),
+        h("div", { class: "mv-big num" + (rc.n ? " mv-" + kind(rc.units) : ""), text: rc.n ? rc.text : picks.length ? "0-0" : "—" }),
+        h("div", { class: "sub", style: "margin:0", text: rc.n
+          ? `${pct(rc.pct)} wins · ${sgn(rc.units)} units` + (pending ? ` · ${pending} pending` : "")
+          : picks.length ? `${plural(picks.length, "pick")}, none graded yet`
+          : date > t0 ? "No picks yet for this day. Lines may not be posted." : "No picks cleared the bar this day." })));
+      const split = (label, list) => { const x = record(list); return h("div", null, h("span", { text: label }), h("span", { class: "num", text: recText(x) })); };
+      const allPicks = mine.filter(r => r.tier);
+      side.append(h("div", { class: "kv", style: "margin-top:10px" },
+        split("Spreads", allPicks.filter(r => r.type === "Spread")), split("Totals", allPicks.filter(r => r.type === "Total")),
+        split("Strong", picks.filter(r => r.tier === "Strong")), split("Lean", picks.filter(r => r.tier === "Lean"))));
+      if (picks.length) {
+        const order = [...picks].sort((a, b) => (a.min ?? 9999) - (b.min ?? 9999));
+        pickList = h("div", null, h("h3", { style: "margin:14px 0 6px", text: "This day's picks" }),
+          h("ul", { class: "mv-list" }, order.map(r => h("li", null,
+            resPill(["W", "L", "P"].includes(r.result) ? r.result : "Pending"),
+            h("span", { class: "mv-pick" }, h("b", { text: r.pick }), h("small", { class: "muted" }, " · ", gameCell(r))),
+            h("span", { class: "num muted", text: r.units == null ? "" : sgn(r.units) })))));
+      }
+      /* last 7 days ending on this date: click a day to jump to it */
+      const strip = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = shift(date, -i), x = record(rows.filter(r => r.method === m && r.date === d && typeOk(r)));
+        strip.push(h("button", { type: "button", class: (x.n ? kind(x.units) : "") + (d === date ? " on" : ""), title: `${dlabel(d)}: ${x.n ? recText(x) : "no graded picks"}`, onclick: () => setDate(d) },
+          h("span", { text: new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { timeZone: "UTC", weekday: "narrow" }) }),
+          h("b", { class: "num", text: x.n ? x.text : "·" })));
+      }
+      const thru = record(rows.filter(r => r.method === m && r.date <= date && typeOk(r)));
+      const wk = record(rows.filter(r => r.method === m && r.date <= date && r.date > shift(date, -7) && typeOk(r)));
+      side.append(h("h3", { style: "margin:14px 0 6px", text: "Last 7 days" }), h("div", { class: "mv-strip" }, strip),
+        h("div", { class: "kv", style: "margin-top:10px" },
+          h("div", null, h("span", { text: "7 days ending here" }), h("span", { class: "num", text: recText(wk) })),
+          h("div", null, h("span", { text: "Season through here" }), h("span", { class: "num", text: recText(thru) }))));
+    }
+
+    /* every method on this day */
+    side.append(h("h3", { style: "margin:14px 0 6px", text: `All methods this day · ${typeWord}` }),
+      h("div", { class: "kv" }, METHODS.map(m => {
+        const x = record(dayOf(m).filter(typeOk));
+        return h("div", { class: "mv-row" + (m === UI.method ? " on" : ""), role: "button", tabindex: "0", title: "Switch to this method",
+          onclick: () => { UI.method = m; render(); }, onkeydown: e => { if (e.key === "Enter") { UI.method = m; render(); } } },
+          h("span", { text: m }), h("span", { class: "num" + (x.n ? " mv-" + kind(x.units) : ""), text: recText(x) }));
+      })));
+
+    /* the original pick engine's picks for the same day */
+    const log = (S.pickLog || []).filter(p => p.date === date && (UI.type === "Both" || p.type === UI.type));
+    if (log.length) {
+      const g = log.filter(p => ["W", "L", "P"].includes(p.result));
+      const w = g.filter(p => p.result === "W").length, l = g.filter(p => p.result === "L").length, pu = g.length - w - l;
+      const u = g.reduce((a, p) => a + (p.units ?? 0), 0);
+      side.append(h("div", { class: "kv", style: "margin-top:10px" }, h("div", null, h("span", { text: "Original pick engine" }),
+        h("span", { class: "num", text: g.length ? `${w}-${l}${pu ? "-" + pu : ""} (${sgn(u)})` : `${plural(log.length, "pick")} pending` }))));
+    }
+    if (pickList) side.append(pickList);
+    return side;
+  }
+  function plural(k, w) { return `${k} ${w}${k === 1 ? "" : "s"}`; }
+  if (!document.getElementById("mv-style")) document.head.append(h("style", { id: "mv-style", text: `
+.mv-layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+.mv-side { position: sticky; top: 52px; max-height: calc(100vh - 64px); overflow-y: auto; }
+.mv-side-top { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; text-align: center; margin-bottom: 12px; }
+.mv-side-top .btn { padding: 4px 10px; }
+.mv-side .kv span.num { white-space: nowrap; }
+.mv-head { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.mv-head .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.mv-big { font: 700 40px/1.05 var(--display); }
+.mv-good { color: var(--good); } .mv-bad { color: var(--bad); } .mv-even { color: var(--even); }
+.mv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 12.5px; }
+.mv-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; }
+.mv-pick { min-width: 0; overflow-wrap: anywhere; }
+.mv-pick .linkish { font-size: 12px; }
+.mv-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.mv-strip button { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 4px 0; cursor: pointer; display: grid; gap: 1px; font-size: 11px; color: var(--muted); }
+.mv-strip button b { font-size: 11.5px; color: var(--ink); }
+.mv-strip button.good { background: var(--good-bg); } .mv-strip button.good b { color: var(--good); }
+.mv-strip button.bad { background: var(--bad-bg); } .mv-strip button.bad b { color: var(--bad); }
+.mv-strip button.even { background: var(--even-bg); }
+.mv-strip button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mv-row { cursor: pointer; }
+.mv-row:hover span:first-child, .mv-row.on span:first-child { color: var(--ink); font-weight: 600; }
+@media (max-width: 900px) {
+  .mv-layout { grid-template-columns: 1fr; }
+  .mv-side { position: static; max-height: none; order: -1; }
+}` }));
+
+  function gameCell(r) {
+    const open = () => typeof goMatchup === "function" && goMatchup(r.away, r.home, r.neutral ? "neutral" : "b", r.id);
+    return h("button", { class: "linkish", type: "button", onclick: open, text: `${r.away} ${r.neutral ? "vs" : "@"} ${r.home}` });
+  }
+  function confCell(c) {
+    return h("span", null, pct(c), h("span", { class: "ebar", "aria-hidden": "true" }, h("i", { style: `width:${Math.min(100, Math.max(0, (c - 0.5) / 0.1 * 100))}%` })));
+  }
+  function scoreText(r) { return r.hp == null ? "" : `${r.ap}-${r.hp}`; }
+  function singleTable(list) {
+    return h("div", { class: "tablewrap", style: "max-height:70vh" }, h("table", null,
+      h("thead", null, h("tr", null, ["Time", "Game", "Type", "Call", "Confidence", "Tier", "Result", "Score", "Units", "Detail"].map((c, i) => h("th", { class: [4, 8].includes(i) ? "r" : "", text: c })))),
+      h("tbody", null, list.map(r => h("tr", null,
+        h("td", { text: tfmt(r.min) }), h("td", null, gameCell(r)), h("td", { text: r.type }),
+        h("td", { style: r.tier ? "font-weight:700" : "color:var(--muted)", text: r.pick }),
+        h("td", { class: "r" }, confCell(r.conf)),
+        h("td", null, r.tier ? pill(r.tier, r.tier === "Strong" ? "good" : "edge") : h("span", { class: "muted", text: "lean only" })),
+        h("td", null, resPill(r.result)), h("td", { text: scoreText(r) }),
+        h("td", { class: "r", text: r.units == null ? "" : sgn(r.units) }),
+        h("td", { class: "muted", style: "white-space:normal;min-width:160px", text: detail(r) }))))));
+  }
+  function detail(r) {
+    const bits = [];
+    if (r.mval != null) bits.push(r.type === "Spread" ? `Projected home margin ${sgn(r.mval)}` : `Projected total ${r.mval.toFixed(1)}`);
+    if (r.msrc) bits.push(`from ${r.msrc}`);
+    if (r.open != null && r.line != null && r.open !== r.line) bits.push(`opened ${r.type === "Spread" ? sgn(r.open) : r.open.toFixed(1)}`);
+    return bits.join(" · ");
+  }
+  function compareTable(day) {
+    const games = new Map();
+    for (const r of day) { const k = r.id + "|" + r.type; if (!games.has(k)) games.set(k, { base: r, by: {} }); games.get(k).by[r.method] = r; }
+    const list = [...games.values()].sort((a, b) => (a.base.min ?? 9999) - (b.base.min ?? 9999));
+    return h("div", { class: "tablewrap", style: "max-height:70vh" }, h("table", null,
+      h("thead", null, h("tr", null, h("th", { text: "Game" }), h("th", { text: "Type" }), METHODS.map(m => h("th", { text: m })), h("th", { text: "Score" }))),
+      h("tbody", null, list.map(g => h("tr", null, h("td", null, gameCell(g.base)), h("td", { text: g.base.type }),
+        METHODS.map(m => { const r = g.by[m]; if (!r) return h("td", { class: "muted", text: "—" });
+          return h("td", { style: r.tier ? "font-weight:700" : "color:var(--muted)" }, `${r.pick} · ${pct(r.conf)} `, r.tier && r.result !== "Pending" ? resPill(r.result) : null); }),
+        h("td", { text: scoreText(g.base) }))))));
+  }
+
+  /* ---- trend weights panel */
+  function trendPanel() {
+    const man = M.manual;
+    const det = h("details", { class: "settings", open: UI.trendOpen || null, ontoggle: e => { UI.trendOpen = e.target.open; } },
+      h("summary", { text: `Trend weights · ${manualOn() ? "MANUAL" : "learned"}` }));
+    det.append(h("p", { class: "sub", text: "Each weight is how many percentage points of confidence a factor adds at a coin flip (+ favors that side: the underdog, the home team, the over). Learned weights re-fit every day from earlier games. Switch to Manual to set your own: the page recalculates right away, and Export saves them as trend_settings.json for the engine. The Model's own weight always stays learned." }),
+      manualOn() ? h("p", { class: "sub", style: "color:var(--bad)", text: "Heads up: manual weights are applied to past days too, using what you know now. If you tune them by looking at these records, the records will flatter your settings. Judge manual weights on games after you set them." }) : null,
+      h("div", { class: "seg", role: "group", "aria-label": "Trend weight mode" },
+        ["learned", "manual"].map(mode => h("button", { type: "button", "aria-pressed": String(man.mode === mode), text: mode === "learned" ? "Learned" : "Manual",
+          onclick: () => { man.mode = mode; if (mode === "manual") seedManual(); saveManual(); render(); } }))));
+    for (const type of ["Spread", "Total"]) {
+      const key = type === "Spread" ? "spread" : "total";
+      const tbl = h("div", { class: "kv", style: "margin-top:10px" }, h("div", null, h("b", { text: type === "Spread" ? "Spreads" : "Totals" }), h("span", { class: "muted", text: "learned (Model + Trends / Trends) → yours" })));
+      for (const [f, label] of FACT[type]) {
+        const lmt = learnedWeight(type, f, "Model + Trends"), ltr = learnedWeight(type, f, "Trends");
+        const val = n(man[key][f]) ?? 0;
+        const out = h("span", { class: "num", style: "min-width:52px;display:inline-block;text-align:right", text: sgn(val) + " pp" });
+        const slider = h("input", { type: "range", min: "-10", max: "10", step: "0.5", value: String(val), disabled: !manualOn() || null, "aria-label": label, style: "width:140px",
+          oninput: e => { out.textContent = sgn(+e.target.value) + " pp"; }, onchange: e => { man[key][f] = +e.target.value; saveManual(); render(); } });
+        tbl.append(h("div", null, h("span", { text: label }),
+          h("span", { style: "display:flex;gap:10px;align-items:center" }, h("span", { class: "muted num", text: `${lmt == null ? "—" : sgn(lmt)} / ${ltr == null ? "—" : sgn(ltr)}` }), slider, out)));
+      }
+      det.append(tbl);
+    }
+    det.append(h("div", { class: "controls", style: "margin-top:12px" },
+      h("button", { class: "btn", type: "button", text: "Copy learned weights into Manual", onclick: () => { seedManual(true); man.mode = "manual"; saveManual(); render(); } }),
+      h("button", { class: "btn", type: "button", text: "Export trend_settings.json", onclick: exportSettings }),
+      h("span", { class: "muted", text: M.mode === "manual" ? "The workbook was built with manual weights from trend_settings.json." : "The workbook was built with learned weights." })));
+    return h("section", { class: "panel" }, det);
+  }
+  function seedManual(force) {
+    for (const type of ["Spread", "Total"]) {
+      const key = type === "Spread" ? "spread" : "total";
+      for (const [f] of FACT[type]) if (force || M.manual[key][f] == null) {
+        const v = learnedWeight(type, f, "Trends");
+        M.manual[key][f] = v == null ? 0 : Math.round(v * 2) / 2;
+      }
+    }
+  }
+  function exportSettings() {
+    const blob = new Blob([JSON.stringify({ mode: M.manual.mode, spread: M.manual.spread, total: M.manual.total }, null, 2)], { type: "application/json" });
+    const a = h("a", { href: URL.createObjectURL(blob), download: "trend_settings.json" });
+    document.body.append(a); a.click(); a.remove();
+  }
+
+  if (S.loaded && typeof render === "function" && (location.hash === "#picks" || location.hash === "")) render();
+})();
+
+</script>
+</body>
+</html>

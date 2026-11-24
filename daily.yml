@@ -1,0 +1,118 @@
+# CBB Hype - daily update.
+# This file goes at .github/workflows/daily.yml in your repository (see README step 4).
+name: CBB Hype daily update
+
+on:
+  schedule:
+    # GitHub's clock is UTC. These wake-ups cover 4 AM Eastern in both standard time
+    # (9:00 UTC) and daylight time (8:00 UTC), plus two retries if a pull fails.
+    # run_daily.py does nothing before 4 AM ET or once today's update has finished,
+    # so the extra wake-ups use no API calls.
+    - cron: "0 8,9,10,11 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "What to run"
+        type: choice
+        default: "Full update (uses about 20 API calls)"
+        options:
+          - "Full update (uses about 20 API calls)"
+          - "Rebuild site only (no API calls)"
+      force:
+        description: "Pull again even if today's update already finished"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write     # save the data branch
+  pages: write        # publish the site
+  id-token: write
+
+concurrency:
+  group: cbb-hype
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TZ: America/New_York
+      CBBD_API_KEY: ${{ secrets.CBBD_API_KEY }}
+      API_MONTHLY_LIMIT: ${{ vars.API_MONTHLY_LIMIT }}
+    outputs:
+      did_run: ${{ steps.run.outputs.did_run }}
+      deploy: ${{ steps.run.outputs.deploy }}
+      failed: ${{ steps.run.outputs.failed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load saved data (games log, workbook, Torvik snapshots)
+        run: |
+          if git fetch --depth=1 origin data 2>/dev/null; then
+            git --work-tree=. checkout FETCH_HEAD -- . && git reset -q
+            echo "Loaded saved data."
+          else
+            echo "No saved data yet - the first run starts from the files in seed/."
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run the update
+        id: run
+        continue-on-error: true
+        run: |
+          ARGS=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            case "${{ inputs.mode }}" in Rebuild*) ARGS="$ARGS --rebuild";; esac
+            if [ "${{ inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
+          fi
+          python run_daily.py $ARGS
+
+      - name: Save data to the data branch
+        if: steps.run.outputs.did_run == 'true'
+        run: |
+          cd _state
+          git init -q -b data
+          git -c user.name="cbb-hype-bot" -c user.email="actions@users.noreply.github.com" add -A
+          git -c user.name="cbb-hype-bot" -c user.email="actions@users.noreply.github.com" commit -q -m "Data as of $(date '+%Y-%m-%d %H:%M %Z')"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data
+
+      - name: Keep a backup of the data (14 days)
+        if: steps.run.outputs.did_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-backup-${{ github.run_id }}
+          path: _state
+          retention-days: 14
+
+      - name: Package the site
+        if: steps.run.outputs.deploy == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  report:
+    needs: [update, deploy]
+    if: always() && needs.update.outputs.failed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "The update had a problem - open the 'update' job's summary for details."
+          exit 1
