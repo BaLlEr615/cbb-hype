@@ -8,7 +8,7 @@ on:
     # (9:00 UTC) and daylight time (8:00 UTC), plus two retries if a pull fails.
     # run_daily.py does nothing before 4 AM ET or once today's update has finished,
     # so the extra wake-ups use no API calls.
-    - cron: "0 8,9,10,11 * * *"
+    - cron: "17 8,9,10,11,12,13,14,15 * * *"
   workflow_dispatch:
     inputs:
       mode:
