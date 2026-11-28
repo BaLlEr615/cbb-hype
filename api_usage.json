@@ -1,0 +1,12 @@
+{
+  "months": {
+    "2026-11": {
+      "calls": 95,
+      "runs": 5
+    }
+  },
+  "last_headers": {
+    "X-CallLimit-Remaining": "152"
+  },
+  "updated": "2026-11-28T11:53-05:00"
+}
